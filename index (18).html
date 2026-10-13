@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>One Bite: A Trip Through the Digestive System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wall:#EEF2F4; --paper:#FFFFFF; --ink:#1B2330; --muted:#566273;
+  --gut:#7A2E5A; --gut-soft:#F3E6EE; --helper:#2C7A80; --helper-soft:#E1F0F1;
+  --bite:#E3A21A; --line:#CED6DC; --good:#1E7A3C; --bad:#B0281F;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--wall);color:var(--ink);
+  font-family:Lexend,Verdana,Arial,sans-serif;font-size:17px;line-height:1.6}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{font-family:"Bricolage Grotesque","Trebuchet MS",Arial,sans-serif;line-height:1.15;margin:0 0 .4em}
+h1{font-size:2.3rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.7rem;font-weight:800}
+h3{font-size:1.1rem;font-weight:600}
+p{margin:0 0 .8em}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--bite);outline-offset:2px}
+.app{display:grid;grid-template-columns:250px 1fr;gap:28px;max-width:1180px;margin:0 auto;padding:22px}
+@media(max-width:820px){.app{grid-template-columns:1fr;padding:12px;gap:12px}}
+
+/* ---------- route map ---------- */
+.map{position:sticky;top:16px;align-self:start;background:var(--paper);border-radius:14px;padding:16px 6px 14px;border:1px solid var(--line)}
+.map h3{font-size:.95rem;color:var(--muted);margin:0 0 6px 8px;font-weight:600}
+.map svg{width:100%;height:auto;display:block}
+.map .legend{font-size:.78rem;color:var(--muted);margin:8px 8px 0;line-height:1.4}
+.legend span{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+@media(max-width:820px){.map{position:static}.map svg{max-height:210px}}
+
+/* ---------- main card ---------- */
+.card{background:var(--paper);border-radius:16px;border:1px solid var(--line);padding:28px 32px;min-height:520px}
+@media(max-width:820px){.card{padding:18px}}
+.screen{display:none}.screen.on{display:block}
+.stopTag{display:inline-block;font-size:.85rem;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:10px}
+.tag-main{background:var(--gut-soft);color:var(--gut)}
+.tag-helper{background:var(--helper-soft);color:var(--helper)}
+.twocol{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
+@media(max-width:980px){.twocol{grid-template-columns:1fr}}
+.organ{background:var(--wall);border-radius:12px;padding:10px;text-align:center}
+.organ svg{width:100%;max-width:300px;height:auto}
+.organ figcaption{font-size:.8rem;color:var(--muted)}
+.read p{max-width:62ch}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
+.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:22px;padding:5px 14px;font-size:.9rem}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.words{display:none;background:#FFF8E6;border-left:4px solid var(--bite);border-radius:6px;padding:10px 14px;margin:0 0 14px;font-size:.93rem}
+.words.on,.deep.on{display:block}
+.words dt{font-weight:600;display:inline}
+.words dd{display:inline;margin:0}
+.words div{margin:2px 0}
+.deep{display:none;background:var(--helper-soft);border-radius:8px;padding:10px 14px;margin:0 0 14px;font-size:.93rem}
+
+/* bite tracker */
+.tracker{border:1.5px dashed var(--line);border-radius:12px;padding:10px 14px;margin:14px 0 18px}
+.tracker h3{font-size:.95rem;margin-bottom:4px}
+.trow{display:grid;grid-template-columns:150px 1fr 200px;align-items:center;gap:10px;font-size:.88rem;min-height:34px}
+@media(max-width:560px){.trow{grid-template-columns:1fr;gap:0;margin-bottom:6px}}
+.trow svg{height:26px;width:100%;max-width:230px}
+.trow .st{color:var(--muted);font-size:.82rem}
+.trow.changed .st{color:var(--gut);font-weight:600}
+
+/* questions */
+.q{border-top:1px solid var(--line);padding-top:16px;margin-top:6px}
+.q + .q{margin-top:16px}
+.q .prompt{font-weight:600;margin-bottom:8px}
+.opts{display:grid;gap:8px}
+.opts.pills{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.opt{text-align:left;border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:9px 14px}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{border-color:var(--good);background:#E6F4EA}
+.opt.wrong{border-color:var(--bad);background:#FBEAE8;text-decoration:line-through}
+.opt:disabled{cursor:default;color:var(--ink)}
+.fb{margin-top:8px;font-size:.95rem;min-height:1.2em}
+.fb.good{color:var(--good)}.fb.bad{color:var(--bad)}
+.hintBtn{background:none;border:none;color:var(--helper);text-decoration:underline;padding:0;font-size:.9rem;margin-top:6px}
+.hint{display:none;font-size:.9rem;color:var(--muted);margin-top:4px}.hint.on{display:block}
+
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:10px;flex-wrap:wrap}
+.go{background:var(--gut);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-weight:600}
+.go:disabled{background:#B9A7B1;cursor:not-allowed}
+.back{background:none;border:1.5px solid var(--line);border-radius:10px;padding:10px 16px}
+.lock{font-size:.85rem;color:var(--muted)}
+
+/* forms */
+label.f{display:block;font-weight:600;margin:12px 0 4px}
+input[type=text],select,textarea{font:inherit;width:100%;max-width:420px;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fff}
+textarea{max-width:100%;min-height:110px}
+.orderList{list-style:none;padding:0;margin:8px 0;max-width:420px}
+.orderList li{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:8px;padding:6px 10px;margin-bottom:6px;background:#fff}
+.orderList li b{width:1.4em;color:var(--gut)}
+.orderList li span{flex:1}
+.orderList button{border:1px solid var(--line);background:var(--wall);border-radius:6px;width:34px;height:32px}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px;max-width:600px}
+.checks label{border:1.5px solid var(--line);border-radius:8px;padding:6px 10px;display:flex;gap:8px;align-items:center;background:#fff}
+.case{background:var(--wall);border-radius:12px;padding:14px 18px;margin:10px 0 14px}
+.case ul{margin:6px 0 0;padding-left:20px}
+.frame{font-size:.9rem;color:var(--muted);background:#FFF8E6;border-radius:6px;padding:8px 12px;margin:6px 0}
+
+/* log */
+.logWrap{margin-top:20px}
+.logWrap summary{cursor:pointer;font-weight:600;color:var(--helper)}
+table.log{border-collapse:collapse;width:100%;font-size:.86rem;margin-top:8px}
+table.log th,table.log td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+table.log th{background:var(--wall)}
+.tableScroll{overflow-x:auto}
+
+/* end */
+.code{font-family:"Bricolage Grotesque",Arial,sans-serif;font-size:2.4rem;font-weight:800;letter-spacing:.06em;color:var(--gut);background:var(--gut-soft);display:inline-block;padding:6px 20px;border-radius:12px;margin:6px 0 12px}
+.score{font-size:1.15rem}
+.save{margin:10px 0;font-weight:600}
+.compare{margin:12px 0}
+.compare li{margin-bottom:4px}
+.hero{display:grid;grid-template-columns:1fr 200px;gap:20px;align-items:center}
+@media(max-width:700px){.hero{grid-template-columns:1fr}.hero svg{max-width:160px}}
+.small{font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.token{transition:cy .7s ease, cx .7s ease}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="map" aria-label="Route map of the digestive system">
+    <h3>Route map</h3>
+    <svg id="routeMap" viewBox="0 0 262 470" role="img" aria-labelledby="mapTitle">
+      <title id="mapTitle">The main line runs mouth, esophagus, stomach, small intestine, large intestine, exit. Liver, gallbladder, and pancreas are feeder lines that send juices into the small intestine.</title>
+    </svg>
+    <p class="legend"><span style="background:var(--gut)"></span>Main line: food rides here<br><span style="background:var(--helper)"></span>Feeder line: only juices travel</p>
+  </aside>
+
+  <main class="card" id="card" aria-live="polite"></main>
+</div>
+
+<script>
+/* ============================================================
+   CONTENT
+   ============================================================ */
+const MAIN = ['mouth','esophagus','stomach','si','li','exit'];
+const HELPERS = ['liver','gallbladder','pancreas'];
+
+const ICON = {
+"mouth": "<svg viewBox=\"0 0 260 220\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M30 105 Q130 18 230 105 Q130 196 30 105Z\" fill=\"#E6AFC4\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><path d=\"M50 105 Q130 42 210 105 Q130 172 50 105Z\" fill=\"#6B2447\" stroke=\"#1B2330\" stroke-width=\"2\"/><rect x=\"64.0\" y=\"90.9\" width=\"11\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-31.3 69.5 91.9)\"/><rect x=\"77.4\" y=\"83.6\" width=\"11\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-25.3 82.9 84.6)\"/><rect x=\"90.9\" y=\"78.2\" width=\"11\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-18.7 96.4 79.2)\"/><rect x=\"103.3\" y=\"74.5\" width=\"13\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-11.5 109.8 75.5)\"/><rect x=\"116.8\" y=\"72.7\" width=\"13\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-3.9 123.3 73.7)\"/><rect x=\"130.2\" y=\"72.7\" width=\"13\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(3.9 136.7 73.7)\"/><rect x=\"143.7\" y=\"74.5\" width=\"13\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(11.5 150.2 75.5)\"/><rect x=\"158.1\" y=\"78.2\" width=\"11\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(18.7 163.6 79.2)\"/><rect x=\"171.6\" y=\"83.6\" width=\"11\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(25.3 177.1 84.6)\"/><rect x=\"185.0\" y=\"90.9\" width=\"11\" height=\"15\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(31.3 190.5 91.9)\"/><rect x=\"65.8\" y=\"104.8\" width=\"10.5\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(31.1 71.1 117.8)\"/><rect x=\"78.9\" y=\"111.8\" width=\"10.5\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(25.1 84.2 124.8)\"/><rect x=\"92.0\" y=\"117.0\" width=\"10.5\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(18.5 97.3 130.0)\"/><rect x=\"104.4\" y=\"120.5\" width=\"12\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(11.4 110.4 133.5)\"/><rect x=\"117.5\" y=\"122.3\" width=\"12\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(3.8 123.5 135.3)\"/><rect x=\"130.5\" y=\"122.3\" width=\"12\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-3.8 136.5 135.3)\"/><rect x=\"143.6\" y=\"120.5\" width=\"12\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-11.4 149.6 133.5)\"/><rect x=\"157.5\" y=\"117.0\" width=\"10.5\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-18.5 162.7 130.0)\"/><rect x=\"170.6\" y=\"111.8\" width=\"10.5\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-25.1 175.8 124.8)\"/><rect x=\"183.7\" y=\"104.8\" width=\"10.5\" height=\"13\" rx=\"4\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.5\" transform=\"rotate(-31.1 188.9 117.8)\"/><path d=\"M124 76 Q130 74 136 76 Q138 92 130 98 Q122 92 124 76Z\" fill=\"#E6AFC4\" stroke=\"#1B2330\" stroke-width=\"1.5\"/><path d=\"M78 128 Q130 96 182 128 Q176 150 130 152 Q84 150 78 128Z\" fill=\"#E48DAE\" stroke=\"#1B2330\" stroke-width=\"2\"/><path d=\"M130 112 V142\" stroke=\"#7A2E5A\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M70 116 q4 6 0 8 q-4 -2 0 -8z\" fill=\"#BFE0F0\" stroke=\"#1B2330\" stroke-width=\"1\"/><path d=\"M190 116 q4 6 0 8 q-4 -2 0 -8z\" fill=\"#BFE0F0\" stroke=\"#1B2330\" stroke-width=\"1\"/><circle cx=\"222\" cy=\"36\" r=\"11\" fill=\"#E3A21A\" stroke=\"#1B2330\" stroke-width=\"1.5\"/><line x1=\"92\" y1=\"62\" x2=\"84\" y2=\"24\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"92\" cy=\"62\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"81\" y=\"28\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">teeth (chew)</text><line x1=\"130\" y1=\"94\" x2=\"186\" y2=\"62\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"130\" cy=\"94\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"189\" y=\"66\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">uvula</text><line x1=\"150\" y1=\"136\" x2=\"196\" y2=\"178\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"150\" cy=\"136\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"199\" y=\"182\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">tongue</text><line x1=\"70\" y1=\"122\" x2=\"96\" y2=\"200\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"70\" cy=\"122\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"99\" y=\"204\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">saliva with amylase</text></svg>",
+"esophagus": "<svg viewBox=\"0 0 260 220\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 150 Q130 128 240 150\" fill=\"none\" stroke=\"#C3CAD0\" stroke-width=\"6\"/><path d=\"M112 8 C112 36 122 50 122 58 C122 66 106 80 104 96 C102 112 112 122 112 134 L112 168 L148 168 \" fill=\"none\"/><path d=\"M112 8 C112 36 122 50 122 58 C122 66 106 80 104 96 C102 112 112 122 112 134 L112 168 L148 168 L148 134 C148 122 158 112 156 96 C154 80 138 66 138 58 C138 50 148 36 148 8Z\" fill=\"#F3D9E3\" stroke=\"none\"/><path d=\"M112 8 C112 36 122 50 122 58 C122 66 106 80 104 96 C102 112 112 122 112 134 L112 168\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><path d=\"M148 8 C148 36 138 50 138 58 C138 66 154 80 156 96 C158 112 148 122 148 134 L148 168\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><ellipse cx=\"130\" cy=\"98\" rx=\"20\" ry=\"16\" fill=\"#E3A21A\" stroke=\"#1B2330\" stroke-width=\"1.5\"/><path d=\"M96 58 H114 M108 53 l6 5 l-6 5\" stroke=\"#7A2E5A\" stroke-width=\"2\" fill=\"none\"/><path d=\"M164 58 H146 M152 53 l-6 5 l6 5\" stroke=\"#7A2E5A\" stroke-width=\"2\" fill=\"none\"/><path d=\"M130 120 v16 m-5 -6 l5 6 l5 -6\" stroke=\"#566273\" stroke-width=\"1.8\" fill=\"none\"/><path d=\"M112 168 C96 184 90 204 100 218\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><path d=\"M148 168 C176 172 206 188 214 218\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><path d=\"M110 164 H150\" stroke=\"#7A2E5A\" stroke-width=\"5\"/><line x1=\"96\" y1=\"58\" x2=\"84\" y2=\"40\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"96\" cy=\"58\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"81\" y=\"44\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">squeeze</text><line x1=\"150\" y1=\"98\" x2=\"196\" y2=\"94\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"150\" cy=\"98\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"199\" y=\"98\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">bolus</text><text x=\"22\" y=\"168\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\">diaphragm</text><line x1=\"150\" y1=\"164\" x2=\"196\" y2=\"150\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"150\" cy=\"164\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"199\" y=\"154\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">sphincter</text><line x1=\"186\" y1=\"196\" x2=\"214\" y2=\"208\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"186\" cy=\"196\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"217\" y=\"212\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">stomach</text></svg>",
+"stomach": "<svg viewBox=\"0 0 260 220\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M104 34 V6 M124 34 V6\" stroke=\"#1B2330\" stroke-width=\"2.5\" fill=\"none\"/><path d=\"M106 34 V6 H122 V34Z\" fill=\"#F3D9E3\"/><path d=\"M104 34 C90 20 58 24 52 50 C45 80 52 122 76 152 C100 182 158 188 190 166 C200 159 206 150 210 142 L210 124 C200 136 184 146 166 146 C140 146 126 124 122 96 C120 70 122 48 124 34 Z\" fill=\"#F3D9E3\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><path d=\"M66 58 q6 8 0 16 q-6 8 0 16 q6 8 0 16\" fill=\"none\" stroke=\"#7A2E5A\" stroke-width=\"1.6\"/><path d=\"M84 64 q6 8 0 16 q-6 8 0 16 q6 8 0 16 q-6 8 0 16\" fill=\"none\" stroke=\"#7A2E5A\" stroke-width=\"1.6\"/><path d=\"M78 150 q8 -4 16 2 q8 6 16 2 q8 -4 16 2\" fill=\"none\" stroke=\"#7A2E5A\" stroke-width=\"1.6\"/><path d=\"M100 166 q8 -4 16 2 q8 6 16 2 q8 -4 16 2 q8 -4 16 2\" fill=\"none\" stroke=\"#7A2E5A\" stroke-width=\"1.6\"/><path d=\"M104 132 q4 8 -2 14\" fill=\"none\" stroke=\"#7A2E5A\" stroke-width=\"1.6\"/><circle cx=\"98\" cy=\"108\" r=\"3\" fill=\"#1B2330\"/><circle cx=\"110\" cy=\"124\" r=\"2.2\" fill=\"#1B2330\"/><circle cx=\"90\" cy=\"126\" r=\"2.6\" fill=\"#1B2330\"/><circle cx=\"120\" cy=\"150\" r=\"2.2\" fill=\"#1B2330\"/><circle cx=\"146\" cy=\"162\" r=\"2.8\" fill=\"#1B2330\"/><path d=\"M210 124 V142\" stroke=\"#7A2E5A\" stroke-width=\"6\"/><path d=\"M213 124 C228 122 240 128 246 146 M213 142 C222 144 228 152 230 164\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><line x1=\"124\" y1=\"16\" x2=\"150\" y2=\"16\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"124\" cy=\"16\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"153\" y=\"20\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">from esophagus</text><line x1=\"86\" y1=\"80\" x2=\"150\" y2=\"66\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"86\" cy=\"80\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"153\" y=\"70\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">folds (rugae)</text><line x1=\"104\" y1=\"112\" x2=\"150\" y2=\"108\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"104\" cy=\"112\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"153\" y=\"112\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">acid + pepsin</text><line x1=\"210\" y1=\"133\" x2=\"150\" y2=\"204\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"210\" cy=\"133\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"147\" y=\"208\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">pyloric sphincter</text><line x1=\"232\" y1=\"160\" x2=\"252\" y2=\"198\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"232\" cy=\"160\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"249\" y=\"202\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">duodenum</text></svg>",
+"si": "<svg viewBox=\"0 0 260 220\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 20 C10 50 30 70 60 64 L70 40\" fill=\"none\" stroke=\"#C3CAD0\" stroke-width=\"2.5\"/><text x=\"24\" y=\"16\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\">stomach</text><ellipse cx=\"128\" cy=\"84\" rx=\"20\" ry=\"17\" fill=\"#FBE3BF\" stroke=\"#1B2330\" stroke-width=\"1.5\"/><path d=\"M92 116 C64 110 44 128 62 146 C86 168 150 138 190 150 C226 160 214 196 180 198 C140 202 100 180 66 192 C48 198 34 186 40 174\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"16\"/><path d=\"M92 116 C64 110 44 128 62 146 C86 168 150 138 190 150 C226 160 214 196 180 198 C140 202 100 180 66 192 C48 198 34 186 40 174\" fill=\"none\" stroke=\"#F7E6EE\" stroke-width=\"13\"/><path d=\"M70 42 C112 36 150 34 160 60 C170 88 162 112 130 120 C112 124 100 120 92 116\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"18\"/><path d=\"M70 42 C112 36 150 34 160 60 C170 88 162 112 130 120 C112 124 100 120 92 116\" fill=\"none\" stroke=\"#F3D9E3\" stroke-width=\"15\"/><path d=\"M226 10 C212 34 196 56 170 82\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3.5\"/><path d=\"M140 88 L162 90\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3\" stroke-dasharray=\"4 3\"/><circle cx=\"166\" cy=\"86\" r=\"4\" fill=\"#2C7A80\"/><line x1=\"160\" y1=\"60\" x2=\"196\" y2=\"58\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"160\" cy=\"60\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"199\" y=\"62\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">duodenum</text><text x=\"224\" y=\"26\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#2C7A80\" text-anchor=\"end\">bile</text><line x1=\"120\" y1=\"84\" x2=\"60\" y2=\"92\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"120\" cy=\"84\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"57\" y=\"96\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">pancreas</text><line x1=\"168\" y1=\"88\" x2=\"200\" y2=\"110\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"168\" cy=\"88\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"203\" y=\"114\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">juices enter</text><text x=\"130\" y=\"216\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"middle\">about 6 m of coiled tube</text></svg>",
+"liver": "<svg viewBox=\"0 0 260 220\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 72 C22 40 80 26 140 30 C190 32 234 42 244 58 C240 72 212 84 172 96 C132 108 82 118 52 116 C30 114 16 98 18 72Z\" fill=\"#EBCABD\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><path d=\"M152 32 C148 58 144 80 140 102\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"1.5\"/><path d=\"M72 104 C64 122 70 144 86 146 C100 148 104 132 98 112\" fill=\"#CFE6C4\" stroke=\"#1B2330\" stroke-width=\"2\"/><path d=\"M112 110 C112 124 110 136 108 146 M96 112 C100 124 104 136 108 146\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3\"/><path d=\"M92 132 C98 138 104 142 108 146\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3\"/><path d=\"M108 146 C108 168 112 186 118 204\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3.5\"/><path d=\"M60 206 C100 202 150 204 200 212\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"13\"/><path d=\"M60 206 C100 202 150 204 200 212\" fill=\"none\" stroke=\"#F3D9E3\" stroke-width=\"10\"/><text x=\"70\" y=\"72\" font-size=\"12\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">right lobe</text><text x=\"168\" y=\"62\" font-size=\"12\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">left lobe</text><line x1=\"76\" y1=\"134\" x2=\"66\" y2=\"164\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"76\" cy=\"134\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"63\" y=\"168\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">gallbladder</text><line x1=\"112\" y1=\"118\" x2=\"150\" y2=\"130\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"112\" cy=\"118\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"153\" y=\"134\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">bile made in liver</text><line x1=\"114\" y1=\"184\" x2=\"150\" y2=\"176\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"114\" cy=\"184\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"153\" y=\"180\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">bile duct</text><line x1=\"80\" y1=\"205\" x2=\"70\" y2=\"190\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"80\" cy=\"205\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"67\" y=\"194\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">duodenum</text></svg>",
+"gallbladder": "<svg viewBox=\"0 0 260 220\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M0 40 C60 20 180 18 260 36 L260 0 L0 0Z\" fill=\"#EBCABD\" stroke=\"#1B2330\" stroke-width=\"2\"/><text x=\"200\" y=\"20\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">liver</text><path d=\"M92 44 C60 50 44 96 58 126 C70 150 102 150 114 128 C124 108 122 76 116 60 C112 50 104 44 92 44Z\" fill=\"#CFE6C4\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><circle cx=\"78\" cy=\"118\" r=\"6\" fill=\"#D9D2B8\" stroke=\"#1B2330\" stroke-width=\"1.5\"/><circle cx=\"92\" cy=\"128\" r=\"5\" fill=\"#D9D2B8\" stroke=\"#1B2330\" stroke-width=\"1.5\"/><path d=\"M160 36 C158 64 156 88 154 108\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"4\"/><path d=\"M116 60 C132 70 146 88 154 108\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"4\"/><path d=\"M154 108 C154 140 152 160 150 182\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"5\"/><path d=\"M226 176 C200 176 176 178 152 182\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3\" stroke-dasharray=\"5 3\"/><path d=\"M40 196 C90 186 170 186 240 200\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"17\"/><path d=\"M40 196 C90 186 170 186 240 200\" fill=\"none\" stroke=\"#F3D9E3\" stroke-width=\"14\"/><text x=\"66\" y=\"96\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">stored</text><text x=\"70\" y=\"108\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">bile</text><text x=\"86\" y=\"164\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"middle\">gallstones</text><line x1=\"158\" y1=\"70\" x2=\"196\" y2=\"64\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"158\" cy=\"70\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"199\" y=\"68\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">from liver</text><line x1=\"154\" y1=\"140\" x2=\"180\" y2=\"134\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"154\" cy=\"140\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"183\" y=\"138\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">bile duct</text><text x=\"254\" y=\"168\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#2C7A80\" text-anchor=\"end\">from pancreas</text><line x1=\"110\" y1=\"190\" x2=\"70\" y2=\"214\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"110\" cy=\"190\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"67\" y=\"218\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">duodenum</text></svg>",
+"pancreas": "<svg viewBox=\"0 0 260 220\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M40 22 C18 30 16 64 20 104 C24 142 50 168 104 164\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"18\"/><path d=\"M40 22 C18 30 16 64 20 104 C24 142 50 168 104 164\" fill=\"none\" stroke=\"#F3D9E3\" stroke-width=\"15\"/><path d=\"M50 120 C42 96 52 76 74 78 C94 80 120 72 150 66 C182 60 222 54 238 66 C246 76 236 88 216 90 C186 94 150 100 124 110 C104 118 92 140 74 144 C58 146 52 136 50 120Z\" fill=\"#FBE3BF\" stroke=\"#1B2330\" stroke-width=\"2.5\"/><path d=\"M64 100 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M86 92 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M114 86 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M144 80 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M174 74 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M204 70 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M70 124 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M94 112 q6 -6 12 0\" fill=\"none\" stroke=\"#C99A5B\" stroke-width=\"1.2\"/><path d=\"M232 70 C200 74 150 84 110 98 C82 108 60 112 32 110\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3\" stroke-dasharray=\"5 3\"/><path d=\"M78 4 C70 40 52 80 32 106\" fill=\"none\" stroke=\"#2C7A80\" stroke-width=\"3.5\"/><circle cx=\"30\" cy=\"110\" r=\"4.5\" fill=\"#2C7A80\"/><text x=\"66\" y=\"136\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">head</text><text x=\"146\" y=\"100\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">body</text><text x=\"212\" y=\"84\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\">tail</text><line x1=\"180\" y1=\"76\" x2=\"190\" y2=\"42\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"180\" cy=\"76\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"187\" y=\"46\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">pancreatic duct</text><line x1=\"30\" y1=\"146\" x2=\"64\" y2=\"200\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"30\" cy=\"146\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"67\" y=\"204\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">duodenum</text><line x1=\"66\" y1=\"34\" x2=\"100\" y2=\"20\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"66\" cy=\"34\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"103\" y=\"24\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">bile duct</text><text x=\"252\" y=\"176\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"end\">juice: enzymes + bicarbonate</text></svg>",
+"absorb": "<svg viewBox=\"0 0 260 216\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"0\" y=\"178\" width=\"260\" height=\"16\" fill=\"#F2D0D0\" stroke=\"#7A2E5A\" stroke-width=\"1.5\"/><text x=\"130\" y=\"190\" font-size=\"10\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#7A2E5A\" text-anchor=\"middle\">blood vessel</text><path d=\"M18 178 V80 C18 54 62 54 62 80 V178\" fill=\"#F3D9E3\" stroke=\"#1B2330\" stroke-width=\"2\"/><path d=\"M28 178 V84 C28 68 52 68 52 84 V178\" fill=\"none\" stroke=\"#B0281F\" stroke-width=\"1.5\"/><path d=\"M40.0 178 V88\" stroke=\"#2C7A80\" stroke-width=\"2.5\"/><path d=\"M78 178 V94 C78 68 122 68 122 94 V178\" fill=\"#F3D9E3\" stroke=\"#1B2330\" stroke-width=\"2\"/><path d=\"M88 178 V98 C88 82 112 82 112 98 V178\" fill=\"none\" stroke=\"#B0281F\" stroke-width=\"1.5\"/><path d=\"M100.0 178 V102\" stroke=\"#2C7A80\" stroke-width=\"2.5\"/><line x1=\"78.0\" y1=\"94.0\" x2=\"74.0\" y2=\"94.0\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"78.9\" y1=\"86.7\" x2=\"75.1\" y2=\"85.5\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"81.5\" y1=\"79.9\" x2=\"78.1\" y2=\"77.8\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"85.6\" y1=\"74.4\" x2=\"83.0\" y2=\"71.3\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"90.9\" y1=\"70.3\" x2=\"89.2\" y2=\"66.7\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"96.9\" y1=\"68.3\" x2=\"96.3\" y2=\"64.3\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"103.1\" y1=\"68.3\" x2=\"103.7\" y2=\"64.3\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"109.1\" y1=\"70.3\" x2=\"110.8\" y2=\"66.7\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"114.4\" y1=\"74.4\" x2=\"117.0\" y2=\"71.3\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"118.5\" y1=\"79.9\" x2=\"121.9\" y2=\"77.8\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"121.1\" y1=\"86.7\" x2=\"124.9\" y2=\"85.5\" stroke=\"#1B2330\" stroke-width=\"1\"/><line x1=\"122.0\" y1=\"94.0\" x2=\"126.0\" y2=\"94.0\" stroke=\"#1B2330\" stroke-width=\"1\"/><path d=\"M138 178 V80 C138 54 182 54 182 80 V178\" fill=\"#F3D9E3\" stroke=\"#1B2330\" stroke-width=\"2\"/><path d=\"M148 178 V84 C148 68 172 68 172 84 V178\" fill=\"none\" stroke=\"#B0281F\" stroke-width=\"1.5\"/><path d=\"M160.0 178 V88\" stroke=\"#2C7A80\" stroke-width=\"2.5\"/><path d=\"M198 178 V94 C198 68 242 68 242 94 V178\" fill=\"#F3D9E3\" stroke=\"#1B2330\" stroke-width=\"2\"/><path d=\"M208 178 V98 C208 82 232 82 232 98 V178\" fill=\"none\" stroke=\"#B0281F\" stroke-width=\"1.5\"/><path d=\"M220.0 178 V102\" stroke=\"#2C7A80\" stroke-width=\"2.5\"/><rect x=\"0\" y=\"176\" width=\"260\" height=\"3\" fill=\"#1B2330\"/><polygon points=\"50,24 55,27 55,33 50,36 45,33 45,27\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.3\"/><circle cx=\"110\" cy=\"20\" r=\"5\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.3\"/><rect x=\"163\" y=\"31\" width=\"10\" height=\"6\" rx=\"3\" fill=\"#FBE3BF\" stroke=\"#1B2330\" stroke-width=\"1.3\"/><polygon points=\"226,18 231,21 231,27 226,30 221,27 221,21\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.3\"/><circle cx=\"140\" cy=\"46\" r=\"5\" fill=\"#fff\" stroke=\"#1B2330\" stroke-width=\"1.3\"/><path d=\"M60 38 v12 m-4 -4 l4 4 l4 -4 M200 38 v12 m-4 -4 l4 4 l4 -4\" stroke=\"#566273\" stroke-width=\"1.5\" fill=\"none\"/><text x=\"130\" y=\"10\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"middle\">sugars, amino acids, fatty acids</text><text x=\"40\" y=\"210\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\" text-anchor=\"middle\">villus</text><text x=\"100\" y=\"210\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#B0281F\" text-anchor=\"middle\">capillary</text><text x=\"160\" y=\"210\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#2C7A80\" text-anchor=\"middle\">lacteal (fats)</text><text x=\"220\" y=\"210\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\" text-anchor=\"middle\">microvilli</text></svg>",
+"li": "<svg viewBox=\"0 0 260 222\" xmlns=\"http://www.w3.org/2000/svg\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M80 80 C110 70 160 70 180 88 C196 104 170 118 140 112 C110 106 90 120 100 140 C112 160 160 150 176 136\" fill=\"none\" stroke=\"#E2D2DA\" stroke-width=\"9\"/><text x=\"140\" y=\"100\" font-size=\"10\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"middle\">small intestine</text><path d=\"M52 176 V56 C52 42 62 36 76 36 H190 C204 36 212 42 212 56 V150 C212 176 190 180 170 176 C150 172 136 180 136 196 V214\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"25\"/><path d=\"M52 176 V56 C52 42 62 36 76 36 H190 C204 36 212 42 212 56 V150 C212 176 190 180 170 176 C150 172 136 180 136 196 V214\" fill=\"none\" stroke=\"#F3D9E3\" stroke-width=\"21\"/><path d=\"M52 176 V56 C52 42 62 36 76 36 H190 C204 36 212 42 212 56 V150 C212 176 190 180 170 176 C150 172 136 180 136 196 V214\" fill=\"none\" stroke=\"#E6AFC4\" stroke-width=\"21\" stroke-dasharray=\"1.6 11\"/><path d=\"M52 186 C52 196 44 204 34 206\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"7\"/><path d=\"M52 186 C52 196 44 204 34 206\" fill=\"none\" stroke=\"#F3D9E3\" stroke-width=\"4\"/><path d=\"M88 120 C74 132 70 150 64 166\" fill=\"none\" stroke=\"#1B2330\" stroke-width=\"11\"/><path d=\"M88 120 C74 132 70 150 64 166\" fill=\"none\" stroke=\"#F7E6EE\" stroke-width=\"8\"/><path d=\"M52 120 v-14 m-4 5 l4 -5 l4 5 M130 36 h14 m-5 -4 l5 4 l-5 4 M212 90 v14 m-4 -5 l4 5 l4 -5\" stroke=\"#7A2E5A\" stroke-width=\"1.8\" fill=\"none\"/><text x=\"14\" y=\"112\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\" transform=\"rotate(-90 14 112)\" text-anchor=\"middle\">ascending</text><text x=\"130\" y=\"20\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\" text-anchor=\"middle\">transverse colon</text><text x=\"248\" y=\"100\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#1B2330\" transform=\"rotate(90 248 100)\" text-anchor=\"middle\">descending</text><text x=\"6\" y=\"218\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\">appendix</text><line x1=\"136\" y1=\"200\" x2=\"170\" y2=\"208\" stroke=\"#8C97A3\" stroke-width=\"1\"/><circle cx=\"136\" cy=\"200\" r=\"1.8\" fill=\"#8C97A3\"/><text x=\"173\" y=\"212\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#566273\" text-anchor=\"start\">rectum, then anus</text><text x=\"132\" y=\"64\" font-size=\"11\" font-family=\"Lexend,Arial,sans-serif\" fill=\"#2C7A80\" text-anchor=\"middle\">water absorbed here</text></svg>"
+};
+
+/* bite states: S = starch (crust), P = protein (cheese), F = fat (cheese + pepperoni)
+   whole | partial | small | absorbed | emulsified (fat only) */
+const STOPS = [
+{ id:'mouth', map:'mouth', name:'Mouth', line:'main', icon:'mouth',
+  text:[
+   'Your teeth cut and grind the pizza, and your tongue mixes it with saliva. Breaking food into smaller <b>pieces</b> without changing the molecules is <b>mechanical digestion</b>.',
+   'Saliva has an enzyme called <b>amylase</b>. It starts breaking the <b>starch</b> in the crust into sugars. Breaking the <b>molecules</b> themselves is <b>chemical digestion</b>. So the mouth does both.',
+   'The chewed, wet lump you swallow is called a <b>bolus</b>.'],
+  deep:'You make about a liter of saliva a day. Amylase breaks starch by <b>hydrolysis</b>: it uses water to split the bonds between the sugar units, turning a polymer into smaller pieces.',
+  words:[['mechanical digestion','breaking food into smaller pieces'],['chemical digestion','breaking food molecules into smaller molecules'],['enzyme','a protein that speeds up a reaction'],['amylase','enzyme that breaks down starch'],['bolus','ball of chewed food']],
+  bite:{S:'partial',P:'whole',F:'whole'},
+  kind:'Both',
+  log:'Teeth chew (mechanical); amylase in saliva starts breaking starch (chemical).', macro:'Starch (carbohydrate)',
+  qs:[
+   {q:'The crust is mostly starch. What starts breaking starch down in your mouth?',
+    hint:'Look for the enzyme in saliva.',
+    o:[['Amylase in saliva',1,'Yes. Amylase starts chemical digestion of starch.'],
+       ['Stomach acid',0,'Acid is in the stomach, not the mouth.'],
+       ['Bile',0,'Bile comes from the liver and works on fat in the small intestine.'],
+       ['Chewing only',0,'Chewing makes smaller pieces, but it does not change the starch molecules.']]}
+  ]},
+{ id:'esophagus', map:'esophagus', name:'Esophagus', line:'main', icon:'esophagus',
+  text:[
+   'You swallow, and the bolus enters the <b>esophagus</b>, a muscular tube about 25 cm (10 inches) long from your throat to your stomach.',
+   'Rings of muscle squeeze in waves behind the food and push it along. These waves are called <b>peristalsis</b>. No digestion happens here. The esophagus just <b>moves</b> food.',
+   'At the bottom, a ring of muscle called a <b>sphincter</b> opens to let food into the stomach, then closes to keep acid out.'],
+  deep:'Peristalsis is why you can swallow while upside down. If the sphincter at the bottom leaks, stomach acid splashes up and burns. That is heartburn, and when it happens often it is called GERD.',
+  words:[['peristalsis','waves of muscle squeezing that push food'],['sphincter','ring of muscle that opens and closes like a door'],['transport','to move something from place to place']],
+  bite:{S:'partial',P:'whole',F:'whole'},
+  kind:'Neither',
+  log:'Moves food to the stomach by peristalsis (muscle waves). No digestion.', macro:'None',
+  qs:[
+   {q:'How does the bite get to your stomach, even if you are hanging upside down?',
+    hint:'Think about the muscle waves.',
+    o:[['Waves of muscle squeezing (peristalsis)',1,'Right. The muscles push the food no matter which way is down.'],
+       ['Gravity pulls it down',0,'Gravity helps a little, but you can swallow upside down, so it cannot be the main reason.'],
+       ['The stomach sucks it in',0,'The stomach does not pull food in. The esophagus pushes it.'],
+       ['Bile pushes it',0,'Bile is not in the esophagus. It is added in the small intestine.']]}
+  ]},
+{ id:'stomach', map:'stomach', name:'Stomach', line:'main', icon:'stomach',
+  text:[
+   'The <b>stomach</b> is a stretchy, muscular bag. Its walls <b>churn</b> and squeeze the food (mechanical digestion).',
+   'The stomach also adds <b>hydrochloric acid</b> and an enzyme called <b>pepsin</b>. Pepsin starts breaking the <b>protein</b> in the cheese into smaller chains (chemical digestion). The acid also kills most germs in food.',
+   'After 2 to 4 hours, the bite has become a thick, soupy mix called <b>chyme</b>.'],
+  deep:'Stomach acid has a pH around 1.5 to 3.5, about as acidic as lemon juice or stronger. Pepsin works best in that acid, while amylase from saliva stops working there. A thick layer of <b>mucus</b> keeps the stomach from digesting itself.',
+  words:[['churn','to mix and mash by squeezing'],['hydrochloric acid','strong acid made by the stomach'],['pepsin','stomach enzyme that breaks down protein'],['chyme','soupy mix of food and stomach juices']],
+  bite:{S:'partial',P:'partial',F:'whole'},
+  kind:'Both',
+  log:'Churns food (mechanical); acid + pepsin start breaking protein (chemical). Makes chyme.', macro:'Protein',
+  qs:[
+   {q:'The cheese has a lot of protein. What starts breaking protein down in the stomach?',
+    hint:'It is an enzyme that works in strong acid.',
+    o:[['Pepsin, working in stomach acid',1,'Correct. Pepsin starts chemical digestion of protein.'],
+       ['Amylase',0,'Amylase breaks starch, not protein, and it stops working in stomach acid.'],
+       ['Lipase',0,'Lipase breaks fat, and it comes mainly from the pancreas.'],
+       ['Villi',0,'Villi are in the small intestine, and they absorb nutrients.']]}
+  ]},
+{ id:'si', map:'si', name:'Small intestine, part 1: the duodenum', line:'main', icon:'si',
+  text:[
+   'A little at a time, chyme is squirted into the <b>small intestine</b>, a narrow tube about 6 meters (20 feet) long, coiled up in your belly.',
+   'The first section is called the <b>duodenum</b>. Three <b>accessory organs</b> are connected to it by tubes called <b>ducts</b>. They pour in juices here. This is where <b>most chemical digestion</b> happens.',
+   'Look at the route map. The bite stays in the tube. The helpers send their juices to it. Next, you will visit each helper while the bite waits here.'],
+  deep:'The small intestine also squeezes and mixes (called segmentation), so there is some mechanical mixing too. But its main digestion job is chemical.',
+  words:[['small intestine','long, thin tube where most digestion and absorption happen'],['duodenum','first part of the small intestine'],['accessory organ','helper organ; food does not pass through it'],['duct','small tube that carries a liquid']],
+  bite:{S:'partial',P:'partial',F:'whole'},
+  kind:'Chemical', alsoOk:'Both',
+  log:'Receives chyme and helper juices (bile, pancreatic juice). Most chemical digestion happens here.', macro:'Starch, protein, and fat',
+  qs:[
+   {q:'Which part of the small intestine receives the juices from the helper organs?',
+    hint:'It is the very first section.',
+    o:[['The duodenum',1,'Yes. The duodenum is the first part of the small intestine.'],
+       ['The colon',0,'The colon is another name for the large intestine.'],
+       ['The esophagus',0,'The esophagus comes before the stomach.'],
+       ['The rectum',0,'The rectum is at the end of the large intestine.']]}
+  ]},
+{ id:'liver', map:'liver', name:'Liver', line:'helper', icon:'liver',
+  text:[
+   'The bite is waiting in the duodenum. <b>Food never travels through the liver.</b>',
+   'The <b>liver</b> is your largest internal organ. For digestion, its job is to make <b>bile</b>, a green-yellow liquid. Bile is <b>not</b> an enzyme. It works like dish soap: it breaks big globs of fat into tiny droplets. This is called <b>emulsification</b>, and it gives enzymes more surface to work on.',
+   'The liver also filters toxins out of your blood and processes the nutrients you absorb.'],
+  deep:'Because bile changes the size of fat drops but does not break the fat molecules, many textbooks call emulsification a physical (mechanical) change. The chemical step is done later by lipase.',
+  words:[['bile','liquid made by the liver that breaks fat into tiny droplets'],['emulsify','to break big fat globs into small droplets'],['toxin','a harmful substance']],
+  bite:{S:'partial',P:'partial',F:'whole'},
+  travel:'No',
+  log:'Makes bile, which emulsifies fat. Also filters toxins from blood.', macro:'Fat (lipid)',
+  qs:[
+   {q:'What does the liver make that helps digest fat?',
+    hint:'It is a green-yellow liquid that works like soap.',
+    o:[['Bile',1,'Right. Bile breaks fat into tiny droplets so lipase can reach it.'],
+       ['Pepsin',0,'Pepsin is made in the stomach and breaks protein.'],
+       ['Saliva',0,'Saliva is made by glands in the mouth.'],
+       ['Insulin',0,'Insulin is a hormone from the pancreas that controls blood sugar.']]}
+  ]},
+{ id:'gallbladder', map:'gallbladder', name:'Gallbladder', line:'helper', icon:'gallbladder',
+  text:[
+   'Tucked under the liver is a small, pear-shaped sac: the <b>gallbladder</b>. <b>Food never travels through it.</b>',
+   'The gallbladder <b>stores</b> bile from the liver and makes it stronger. When fatty food like pepperoni reaches the duodenum, the gallbladder squeezes and sends bile down the <b>bile duct</b>.',
+   'Check the bite tracker: the fat has now been broken into tiny droplets.'],
+  deep:'Sometimes bile hardens into small stones called gallstones. A gallstone can block the bile duct and cause sharp pain after fatty meals. People can live without a gallbladder. The liver still makes bile, but it drips in slowly instead of being saved up for a big meal.',
+  words:[['store','to save for later'],['bile duct','tube that carries bile to the duodenum'],['gallstone','hard lump of hardened bile']],
+  bite:{S:'partial',P:'partial',F:'emulsified'},
+  travel:'No',
+  log:'Stores bile and releases it into the duodenum when fat arrives.', macro:'Fat (lipid)',
+  qs:[
+   {q:'A person has their gallbladder removed. What would you predict?',
+    hint:'The gallbladder stores bile. It does not make it.',
+    o:[['The liver still makes bile, but big fatty meals are harder to digest',1,'Yes. Bile can no longer be saved up and released all at once.'],
+       ['They can no longer make any bile',0,'The liver makes bile, and the liver is still there.'],
+       ['They can no longer digest starch',0,'Starch is digested by amylase, not bile.'],
+       ['Food can no longer reach the stomach',0,'Food never passes through the gallbladder, so the tube is not blocked.']]}
+  ]},
+{ id:'pancreas', map:'pancreas', name:'Pancreas', line:'helper', icon:'pancreas',
+  text:[
+   'Behind the stomach sits the <b>pancreas</b>. <b>Food never travels through it.</b>',
+   'The pancreas sends <b>pancreatic juice</b> into the duodenum. This juice has enzymes for all three macromolecules in the bite: <b>amylase</b> for starch, <b>proteases</b> (like trypsin) for protein, and <b>lipase</b> for fat.',
+   'It also contains <b>bicarbonate</b>, a base that <b>neutralizes</b> the stomach acid so these enzymes can work.'],
+  deep:'The pancreas has a second, separate job: it makes <b>insulin</b>, a hormone that controls how much sugar is in your blood. Insulin does not digest food. That job belongs to the endocrine (hormone) system.',
+  words:[['pancreatic juice','mix of enzymes and bicarbonate from the pancreas'],['protease','enzyme that breaks down protein'],['lipase','enzyme that breaks down fat'],['bicarbonate','a base that cancels out acid'],['neutralize','to make something less acidic or basic']],
+  bite:{S:'small',P:'small',F:'small'},
+  travel:'No',
+  log:'Sends pancreatic juice: amylase, protease, and lipase, plus bicarbonate to neutralize acid.', macro:'Starch, protein, and fat',
+  qs:[
+   {q:'Enzymes in pancreatic juice break down which macromolecules?',
+    hint:'Look at the bite tracker. What changed?',
+    o:[['Carbohydrates, proteins, and fats',1,'Correct. That is why the pancreas is so important.'],
+       ['Only fats',0,'Lipase breaks fat, but the juice has other enzymes too.'],
+       ['Only proteins',0,'Proteases break protein, but the juice has other enzymes too.'],
+       ['Only sugar, using insulin',0,'Insulin is a hormone that controls blood sugar. It does not digest food.']]}
+  ]},
+{ id:'absorb', map:'si', name:'Small intestine, part 2: absorption', line:'main', icon:'absorb',
+  text:[
+   'Back in the small intestine, the enzymes finish the job. Starch becomes <b>simple sugars</b>, protein becomes <b>amino acids</b>, and fat becomes <b>fatty acids and glycerol</b>.',
+   'Now these small molecules have to leave the tube and get into your body. The inside wall is covered with millions of tiny finger-like bumps called <b>villi</b>. Villi give the small intestine a huge <b>surface area</b>.',
+   'Nutrients pass through the thin walls of the villi and into blood vessels. This is called <b>absorption</b>. Your blood carries them to every cell.'],
+  deep:'Each villus is covered in even smaller bumps called microvilli. All together, the inside surface of your small intestine is around 30 square meters. Most nutrients go to the liver first, which processes them before they travel to the rest of the body.',
+  words:[['absorption','taking nutrients into the blood'],['villi','finger-like bumps on the small intestine wall'],['surface area','the total area of the outside of something'],['amino acid','building block of protein'],['simple sugar','building block of carbohydrates, like glucose']],
+  bite:{S:'absorbed',P:'absorbed',F:'absorbed'},
+  kind:'Chemical', alsoOk:'Both',
+  log:'Enzymes finish digestion. Villi absorb sugars, amino acids, fatty acids into the blood.', macro:'All three are absorbed',
+  noKind:true,
+  qs:[
+   {q:'Why are villi so important?',
+    hint:'More bumps means more of something.',
+    o:[['They add surface area, so more nutrients can be absorbed',1,'Yes. More surface means more nutrients can pass into the blood at once.'],
+       ['They make bile',0,'The liver makes bile.'],
+       ['They chew the food',0,'Teeth in the mouth do the chewing.'],
+       ['They store feces',0,'The rectum stores feces.']]},
+   {q:'After absorption, where do the sugars and amino acids go?',
+    hint:'Look at the diagram under the villi.',
+    o:[['Into the blood',1,'Right. The blood carries nutrients to your cells.'],
+       ['Into the stomach',0,'Food moves forward through the tube, not backward.'],
+       ['Into the gallbladder',0,'The gallbladder only stores bile.'],
+       ['Straight into the large intestine',0,'The nutrients leave the tube here. What goes on to the large intestine is mostly water and fiber.']]}
+  ]},
+{ id:'li', map:'li', name:'Large intestine', line:'main', icon:'li',
+  text:[
+   'What is left of the bite is mostly water, fiber from the crust, and old cells. It moves into the <b>large intestine</b>, also called the <b>colon</b>. It is wider but shorter than the small intestine, about 1.5 meters (5 feet).',
+   'The large intestine <b>absorbs water</b> back into your body. Helpful <b>bacteria</b> living there feed on fiber and make some vitamins, like vitamin K.',
+   'The leftovers become solid <b>feces</b>. They are stored in the <b>rectum</b> until they leave the body through the anus. The large intestine does not make digestive enzymes.'],
+  deep:'The whole trip from mouth to exit usually takes about 1 to 3 days, and most of that time is spent in the large intestine. The <b>appendix</b> is a small pouch near the start of the large intestine.',
+  words:[['large intestine / colon','wide tube that absorbs water'],['bacteria','tiny living things; many are helpful'],['feces','solid waste'],['rectum','end of the large intestine; stores feces']],
+  bite:{S:'absorbed',P:'absorbed',F:'absorbed'},
+  kind:'Neither',
+  log:'Absorbs water; bacteria digest fiber and make vitamin K. Forms feces, stored in rectum.', macro:'None (water and fiber)',
+  qs:[
+   {q:'If the large intestine absorbed too little water, what would you predict?',
+    hint:'What would the leftovers be like if they kept their water?',
+    o:[['Watery stool (diarrhea)',1,'Yes. Without water absorption, the feces stay watery.'],
+       ['Hard, dry stool (constipation)',0,'That happens when too much water is absorbed.'],
+       ['Protein could not be digested',0,'Protein digestion is already done before the large intestine.'],
+       ['The liver would stop making bile',0,'The liver makes bile no matter what the colon does.']]}
+  ]}
+];
+
+const KIND_OPTS = ['Mechanical','Chemical','Both','Neither'];
+const KIND_FB = {
+ mouth:'The mouth does both: teeth chew (mechanical) and amylase breaks starch (chemical).',
+ esophagus:'Neither. The esophagus moves food with peristalsis but does not break it down.',
+ stomach:'Both: the walls churn (mechanical), and acid + pepsin break protein (chemical).',
+ si:'Mostly chemical: the helper juices break the molecules here.',
+ li:'Neither. It absorbs water, but our body adds no digestive enzymes here.'
+};
+
+const CASE = {
+ claimQ:'Which organ has the main problem?',
+ claims:[['Liver',0,'The liver blood tests are normal, so the liver is making bile.'],
+         ['Gallbladder',1,'Yes. Stones in the gallbladder are blocking bile from reaching the duodenum.'],
+         ['Pancreas',0,'The pancreatic enzyme test is normal, and starch and protein digest fine.'],
+         ['Stomach',0,'Bread and chicken digest fine, so the stomach and protein digestion are working.']],
+ clues:[['Gallstones are blocking the bile duct on the ultrasound.',1],
+        ['Only fatty foods cause the pain and greasy stool.',1],
+        ['Liver blood tests are normal.',1],
+        ['The patient chews food slowly.',0],
+        ['The patient drinks a lot of water.',0],
+        ['The esophagus looks normal on the scan.',0]]
+};
+
+const GF = [
+ {q:'Pepsin breaks down protein, and your stomach wall is made of protein. Why doesn\u2019t your stomach digest itself?',
+  hint:'Look back at the deeper dive on the stomach stop.',
+  o:[['A thick layer of mucus protects the stomach wall',1,'Exactly. The mucus layer keeps acid and pepsin off the cells.'],
+     ['Pepsin only works outside the body',0,'Pepsin works inside the stomach.'],
+     ['The stomach wall is made of fat',0,'The stomach wall is muscle and other tissues made mostly of protein.'],
+     ['Bile coats the stomach',0,'Bile is added after the stomach, in the duodenum.']]},
+ {q:'A plain cracker (mostly starch) and a spoon of butter (mostly fat) are eaten at the same time. Which one starts chemical digestion first?',
+  hint:'Which enzyme is in the mouth?',
+  o:[['The cracker, because amylase in saliva starts on starch right away',1,'Yes. Fat digestion mostly waits for bile and lipase in the small intestine.'],
+     ['The butter, because fat melts in the mouth',0,'Melting is a physical change. Fat is mostly chemically digested in the small intestine.'],
+     ['They start at the same time in the stomach',0,'Starch digestion starts earlier, in the mouth.'],
+     ['Neither starts until the large intestine',0,'The large intestine adds no digestive enzymes.']]}
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const S = {
+  screen:0, seed:String(Math.random()),
+  start:Date.now(),
+  first:{},        // itemKey -> true/false (first try)
+  solved:{},       // itemKey -> true
+  gf:{}, pred:null, predOrder:null, predTravel:null,
+  reasoning:'', claimRight:null, cluesRight:null
+};
+const TOTAL_SCREENS = 2 + STOPS.length + 3; // signin, brief, stops, case, GF, done
+function screenIdx(name){return {signin:0,brief:1,case:2+STOPS.length,gf:3+STOPS.length,done:4+STOPS.length}[name];}
+
+/* ============================================================
+   ROUTE MAP
+   ============================================================ */
+const MAPPOS = {
+ mouth:{x:112,y:30,label:'Mouth'},
+ esophagus:{x:112,y:100,label:'Esophagus'},
+ stomach:{x:112,y:170,label:'Stomach'},
+ si:{x:112,y:260,label:'Small intestine'},
+ li:{x:112,y:360,label:'Large intestine'},
+ exit:{x:112,y:440,label:'Rectum + anus'},
+ liver:{x:170,y:140,label:'Liver'},
+ gallbladder:{x:170,y:195,label:'Gallbladder'},
+ pancreas:{x:170,y:305,label:'Pancreas'}
+};
+function drawMap(active){
+  const m = document.getElementById('routeMap');
+  const P = MAPPOS;
+  let s = `<title id="mapTitle">The main line runs mouth, esophagus, stomach, small intestine, large intestine, exit. Liver, gallbladder, and pancreas are feeder lines that send juices into the small intestine.</title>`;
+  s += `<line x1="112" y1="30" x2="112" y2="440" stroke="#7A2E5A" stroke-width="8" stroke-linecap="round"/>`;
+  // feeder lines
+  s += `<path d="M170 140 L170 235 Q170 252 152 254 L124 258" fill="none" stroke="#2C7A80" stroke-width="4" stroke-dasharray="7 5"/>`;
+  s += `<path d="M170 305 L170 282 Q170 266 152 265 L124 262" fill="none" stroke="#2C7A80" stroke-width="4" stroke-dasharray="7 5"/>`;
+  for (const k in P){
+    const p = P[k], helper = HELPERS.includes(k);
+    const on = active===k;
+    const col = helper ? '#2C7A80' : '#7A2E5A';
+    s += `<circle cx="${p.x}" cy="${p.y}" r="${on?11:8}" fill="${on?col:'#fff'}" stroke="${col}" stroke-width="3"/>`;
+    const tx = helper ? p.x+14 : p.x-16, anchor = helper ? 'start' : 'end';
+    s += `<text x="${tx}" y="${p.y+5}" font-size="13" font-family="Lexend,Arial" font-weight="${on?600:400}" fill="#1B2330" text-anchor="${anchor}">${p.label}</text>`;
+  }
+  // bite token sits on the main line only
+  let tokenAt = 'mouth';
+  const idx = S.screen-2;
+  if (idx>=0 && idx<STOPS.length){
+    const st = STOPS[idx];
+    tokenAt = st.line==='helper' ? 'si' : st.map;
+  } else if (S.screen>=screenIdx('case')) tokenAt='exit';
+  const tp = P[tokenAt];
+  s += `<circle class="token" cx="${tp.x}" cy="${tp.y}" r="6" fill="#E3A21A" stroke="#1B2330" stroke-width="1.5"><title>The bite is here</title></circle>`;
+  m.innerHTML = s;
+}
+
+/* ============================================================
+   BITE TRACKER
+   ============================================================ */
+const STATE_TXT = {whole:'whole', partial:'partly broken', small:'broken into small molecules', absorbed:'absorbed into blood', emulsified:'tiny droplets (emulsified)'};
+function beads(state, isFat){
+  const y=13; let s='';
+  if (state==='absorbed'){
+    for(let i=0;i<6;i++) s+=`<circle cx="${14+i*20}" cy="${y}" r="6" fill="none" stroke="#9AA5B1" stroke-dasharray="2 2"/>`;
+    return s;
+  }
+  if (isFat && state==='whole') return `<ellipse cx="62" cy="${y}" rx="52" ry="11" fill="#FFF1CC" stroke="#1B2330" stroke-width="2"/>`;
+  if (isFat && state==='emulsified'){ for(let i=0;i<8;i++) s+=`<circle cx="${12+i*15}" cy="${y+(i%2?4:-4)}" r="5" fill="#FFF1CC" stroke="#1B2330" stroke-width="1.5"/>`; return s; }
+  const gaps = state==='whole'?[]: state==='partial'?[2]:[0,1,2,3,4];
+  let x=10;
+  for(let i=0;i<6;i++){
+    s+=`<circle cx="${x}" cy="${y}" r="7" fill="${isFat?'#FFF1CC':'#fff'}" stroke="#1B2330" stroke-width="2"/>`;
+    if(i<5){
+      if(gaps.includes(i)){ x+=26; }
+      else { s+=`<line x1="${x+7}" y1="${y}" x2="${x+13}" y2="${y}" stroke="#1B2330" stroke-width="2.5"/>`; x+=20; }
+    }
+  }
+  return s;
+}
+function tracker(stop, prev){
+  const rows=[['S','Starch (crust)'],['P','Protein (cheese)'],['F','Fat (cheese + pepperoni)']];
+  let h=`<div class="tracker" aria-label="Bite tracker"><h3>What is left of the bite</h3>`;
+  rows.forEach(([k,lab])=>{
+    const st=stop.bite[k], changed = prev && prev[k]!==st;
+    h+=`<div class="trow ${changed?'changed':''}"><span>${lab}</span><svg viewBox="0 0 140 26" aria-hidden="true">${beads(st,k==='F')}</svg><span class="st">${changed?'changed: ':''}${STATE_TXT[st]}</span></div>`;
+  });
+  return h+`</div>`;
+}
+
+/* ============================================================
+   QUESTIONS
+   ============================================================ */
+function mcqHTML(key, item, pills){
+  const order = shuffle(item.o.map((_,i)=>i), key);
+  let h=`<div class="q" data-key="${key}"><div class="prompt">${item.q}</div><div class="opts ${pills?'pills':''}">`;
+  order.forEach(i=>{ h+=`<button class="opt" data-i="${i}">${item.o[i][0]}</button>`; });
+  h+=`</div><div class="fb" role="status"></div>`;
+  if(item.hint) h+=`<button class="hintBtn" type="button">Show a hint</button><div class="hint">${item.hint}</div>`;
+  return h+`</div>`;
+}
+function wireMCQ(root, key, item, bucket, onSolved){
+  const q = root.querySelector(`.q[data-key="${key}"]`);
+  const fb = q.querySelector('.fb');
+  const hb = q.querySelector('.hintBtn');
+  if(hb) hb.onclick=()=>{q.querySelector('.hint').classList.add('on');hb.remove();};
+  if((bucket==='gf'?S.gf:S.solved)[key+'_done']){ // restore solved view
+    q.querySelectorAll('.opt').forEach(b=>{ if(item.o[b.dataset.i][1]) b.classList.add('right'); b.disabled=true; });
+    fb.className='fb good'; fb.textContent='Solved.'; return;
+  }
+  q.querySelectorAll('.opt').forEach(b=>{
+    b.onclick=()=>{
+      const [txt,ok,msg]=item.o[b.dataset.i];
+      const store = bucket==='gf'?S.gf:S.first;
+      if(!(key in store)) store[key]=!!ok;
+      fb.textContent=msg;
+      if(ok){
+        b.classList.add('right'); fb.className='fb good';
+        q.querySelectorAll('.opt').forEach(x=>x.disabled=true);
+        (bucket==='gf'?S.gf:S.solved)[key+'_done']=true; q.querySelector('.hintBtn')?.remove(); q.querySelector('.hint')?.classList.remove('on');
+        onSolved&&onSolved();
+      } else { b.classList.add('wrong'); b.disabled=true; fb.className='fb bad'; }
+    };
+  });
+}
+function kindItem(stop){
+  const ok = stop.kind, also = stop.alsoOk;
+  return {q:'What kind of digestion happens here?', hint:'Mechanical = smaller pieces. Chemical = smaller molecules. Neither = no breaking down.',
+    o:KIND_OPTS.map(k=>[k, (k===ok||k===also)?1:0, (k===ok||k===also)?KIND_FB[stop.id]:(k==='Neither'?'Something is being broken down here. Look again.':'Not quite. Reread the second paragraph.')])};
+}
+function travelItem(stop){
+  return {q:`Does the bite of food travel through the ${stop.name.toLowerCase()}?`,
+    o:[['Yes',0,'Look at the route map. The bite is parked on the main line. Only juices travel on the feeder line.'],
+       ['No, it only sends juices to the small intestine',1,`Right. The ${stop.name.toLowerCase()} is an accessory organ. Food never passes through it.`]]};
+}
+function shuffle(arr, seedStr){
+  let seed=0; for(const c of (seedStr+S.seed)) seed=(seed*31+c.charCodeAt(0))>>>0;
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ seed=(seed*1103515245+12345)>>>0; const j=seed%(i+1); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const card = document.getElementById('card');
+function render(){
+  drawMap(currentMapKey());
+  const n=S.screen;
+  if(n===0) return renderSignin();
+  if(n===1) return renderBrief();
+  if(n>=2 && n<2+STOPS.length) return renderStop(n-2);
+  if(n===screenIdx('case')) return renderCase();
+  if(n===screenIdx('gf')) return renderGF();
+  return renderDone();
+}
+function currentMapKey(){
+  const i=S.screen-2;
+  if(i>=0 && i<STOPS.length) return STOPS[i].map;
+  if(S.screen>=screenIdx('case')) return 'exit';
+  return null;
+}
+function go(n){ S.screen=n; stopSpeech(); render(); window.scrollTo({top:0}); card.focus&&card.focus(); }
+
+function renderSignin(){
+  card.innerHTML=`
+  <div class="hero">
+    <div>
+      <h1>One bite, nine meters</h1>
+      <p>You are going to follow one bite of pepperoni pizza through your digestive system, from the first chew to the very end. At each stop, find out what that organ does to the bite.</p>
+      <p class="small">At the end you get a trip code to show your teacher. Mistakes are okay. Your first try on each question counts, and you can keep trying until you get it.</p>
+    </div>
+    <svg viewBox="0 0 200 180" aria-hidden="true"><path d="M20 160 L100 20 L180 160 Z" fill="#FFF1CC" stroke="#1B2330" stroke-width="3" stroke-linejoin="round"/><path d="M14 162 Q100 186 186 162" fill="none" stroke="#1B2330" stroke-width="10" stroke-linecap="round"/><circle cx="90" cy="100" r="12" fill="#F3E6EE" stroke="#7A2E5A" stroke-width="3"/><circle cx="120" cy="130" r="12" fill="#F3E6EE" stroke="#7A2E5A" stroke-width="3"/><circle cx="70" cy="140" r="10" fill="#F3E6EE" stroke="#7A2E5A" stroke-width="3"/><path d="M100 20 l8 -12 l8 14 z" fill="#E3A21A"/></svg>
+  </div>
+  <div class="nav"><span></span><button class="go" id="startBtn">Start the trip</button></div>`;
+  startBtn.onclick=()=>{S.start=Date.now();go(1);};
+}
+
+function renderBrief(){
+  const tube=['Mouth','Esophagus','Stomach','Small intestine','Large intestine'];
+  if(!S.predOrder) S.predOrder=shuffle(tube,'order');
+  const all=['Mouth','Esophagus','Stomach','Liver','Gallbladder','Pancreas','Small intestine','Large intestine'];
+  if(!S.predTravel) S.predTravel={};
+  card.innerHTML=`
+  <span class="stopTag tag-main">Before you go</span>
+  <h2>Make your predictions</h2>
+  <p>The digestive system is one long tube, about 9 meters (30 feet) from start to end, plus helper organs attached to it. Make your best guess. You will not lose points for predictions.</p>
+  <h3>1. Put the stops on the tube in order, first to last.</h3>
+  <ol class="orderList" id="ol"></ol>
+  <h3 style="margin-top:18px">2. Check every organ you think the bite will actually travel through.</h3>
+  <div class="checks">${all.map(o=>`<label><input type="checkbox" value="${o}" ${S.predTravel[o]?'checked':''}> ${o}</label>`).join('')}</div>
+  <div class="nav"><button class="back" id="bk">Back</button><button class="go" id="nx">Lock in predictions and swallow</button></div>`;
+  const drawOL=()=>{
+    ol.innerHTML=S.predOrder.map((o,i)=>`<li><b>${i+1}</b><span>${o}</span><button aria-label="Move ${o} up" data-u="${i}" ${i===0?'disabled':''}>▲</button><button aria-label="Move ${o} down" data-d="${i}" ${i===tube.length-1?'disabled':''}>▼</button></li>`).join('');
+    ol.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      const i=+(b.dataset.u??b.dataset.d), j=b.dataset.u!==undefined?i-1:i+1;
+      [S.predOrder[i],S.predOrder[j]]=[S.predOrder[j],S.predOrder[i]]; drawOL();
+      ol.querySelector(`button[${b.dataset.u!==undefined?'data-u':'data-d'}="${j}"]`)?.focus();
+    });
+  };
+  drawOL();
+  card.querySelectorAll('.checks input').forEach(c=>c.onchange=()=>{S.predTravel[c.value]=c.checked;});
+  bk.onclick=()=>go(0);
+  nx.onclick=()=>{
+    const orderOK = S.predOrder.join()===tube.join();
+    const travelOK = all.every(o=>!!S.predTravel[o]===tube.includes(o));
+    S.pred={orderOK,travelOK,helpersKnown:HELPERS.filter(h=>!S.predTravel[h[0].toUpperCase()+h.slice(1)]).length};
+    go(2);
+  };
+}
+
+function renderStop(i){
+  const st=STOPS[i], prev=i>0?STOPS[i-1].bite:{S:'whole',P:'whole',F:'whole'};
+  const items=[];
+  if(st.line==='helper') items.push([`${st.id}_travel`,travelItem(st),true]);
+  else if(!st.noKind) items.push([`${st.id}_kind`,kindItem(st),true]);
+  st.qs.forEach((q,k)=>items.push([`${st.id}_q${k}`,q,false]));
+  card.innerHTML=`
+  <span class="stopTag ${st.line==='helper'?'tag-helper':'tag-main'}">Stop ${i+1} of ${STOPS.length} · ${st.line==='helper'?'Helper organ (feeder line)':'Main line'}</span>
+  <h2>${st.name}</h2>
+  <div class="twocol">
+    <div class="read" id="readText">${st.text.map(t=>`<p>${t}</p>`).join('')}</div>
+    <figure class="organ" style="margin:0">${ICON[st.icon]}<figcaption>${st.name}</figcaption></figure>
+  </div>
+  <div class="tools">
+    <button class="chip" id="spk" aria-pressed="false">Read it to me</button>
+    <button class="chip" id="wbtn" aria-pressed="false">Key words</button>
+    <button class="chip" id="dbtn" aria-pressed="false">Deeper dive</button>
+  </div>
+  <dl class="words" id="wbox">${st.words.map(([w,d])=>`<div><dt>${w}:</dt> <dd>${d}</dd></div>`).join('')}</dl>
+  <div class="deep" id="dbox">${st.deep}</div>
+  ${tracker(st,prev)}
+  ${items.map(([k,it,p])=>mcqHTML(k,it,p)).join('')}
+  ${logHTML(i)}
+  <div class="nav"><button class="back" id="bk">Back</button><span class="lock" id="lk">Answer the questions to move on.</span><button class="go" id="nx" disabled>${i===STOPS.length-1?'Head for the exit':'Next stop'}</button></div>`;
+  const check=()=>{const done=items.every(([k])=>S.solved[k+'_done']); nx.disabled=!done; lk.textContent=done?'':'Answer the questions to move on.';};
+  items.forEach(([k,it])=>wireMCQ(card,k,it,'main',check));
+  check();
+  toggle(wbtn,wbox); toggle(dbtn,dbox);
+  spk.onclick=()=>speak(readText.innerText, spk);
+  bk.onclick=()=>go(S.screen-1);
+  nx.onclick=()=>go(S.screen+1);
+}
+function toggle(btn,box){btn.onclick=()=>{const on=box.classList.toggle('on');btn.setAttribute('aria-pressed',on);};}
+function logHTML(upto){
+  const rows=STOPS.slice(0,upto+1);
+  return `<details class="logWrap"><summary>Travel log (copy this onto your worksheet)</summary><div class="tableScroll"><table class="log"><tr><th>Stop</th><th>Type of digestion / Does food pass through?</th><th>What happens here</th><th>Macromolecules</th></tr>${rows.map(r=>`<tr><td>${r.name}</td><td>${r.line==='helper'?'No. Helper organ':(r.id==='absorb'?'Chemical (then absorption)':r.kind)}</td><td>${r.log}</td><td>${r.macro}</td></tr>`).join('')}</table></div></details>`;
+}
+
+function renderCase(){
+  card.innerHTML=`
+  <span class="stopTag tag-main">Exit exam</span>
+  <h2>The pepperoni problem</h2>
+  <p>You made it to the end of the line. Now use what you learned on the trip to solve a real case.</p>
+  <div class="case">
+    <b>Patient J.T., age 45</b>
+    <ul>
+      <li>Gets sharp pain in the upper right belly about an hour after eating pizza or fries.</li>
+      <li>Stool is pale and greasy after fatty meals.</li>
+      <li>Toast and grilled chicken cause no problems.</li>
+      <li>Ultrasound: stones inside the gallbladder, one blocking the bile duct.</li>
+      <li>Liver blood tests: normal. Pancreatic enzyme test: normal.</li>
+      <li>Also: chews food slowly, drinks a lot of water, esophagus looks normal.</li>
+    </ul>
+  </div>
+  ${mcqHTML('case_claim',{q:'Claim: '+CASE.claimQ,o:CASE.claims,hint:'Which organ stores and releases bile? Which test results are normal?'},true)}
+  <div class="q" id="clueQ">
+    <div class="prompt">Evidence: choose the 3 clues that best support your claim.</div>
+    <div class="checks" id="clues">${CASE.clues.map((c,i)=>`<label><input type="checkbox" value="${i}"> ${c[0]}</label>`).join('')}</div>
+    <button class="chip" id="clueChk" style="margin-top:10px">Check my evidence</button>
+    <div class="fb" id="clueFb" role="status"></div>
+  </div>
+  <div class="q">
+    <div class="prompt"><label for="rsn">Reasoning: explain how your evidence supports your claim.</label></div>
+    <div class="frame">Sentence starters: "The ______ normally ______. The clue that ______ shows ______. This explains why only ______ foods cause problems. The ______ is not the problem because ______."</div>
+    <textarea id="rsn" placeholder="Type at least two sentences.">${esc(S.reasoning)}</textarea>
+  </div>
+  <div class="nav"><button class="back" id="bk">Back</button><span class="lock" id="lk"></span><button class="go" id="nx" disabled>Finish the case</button></div>`;
+  let claimDone=!!S.solved['case_claim_done'], clueDone=S.cluesRight!==null && S.solved['clues_done'];
+  const check=()=>{
+    const r=rsn.value.trim(); S.reasoning=r;
+    const ok = S.solved['case_claim_done'] && S.solved['clues_done'] && r.split(/\s+/).length>=12;
+    nx.disabled=!ok;
+    lk.textContent= ok?'':'Finish the claim, evidence, and at least 12 words of reasoning.';
+  };
+  wireMCQ(card,'case_claim',{o:CASE.claims},'main',()=>{S.claimRight=S.first['case_claim'];check();});
+  if(S.solved['clues_done']){ card.querySelectorAll('#clues input').forEach(c=>{c.checked=!!CASE.clues[c.value][1];c.disabled=true;}); clueFb.className='fb good'; clueFb.textContent='Solved.'; clueChk.remove(); }
+  else clueChk.onclick=()=>{
+    const picked=[...card.querySelectorAll('#clues input:checked')].map(c=>+c.value);
+    if(picked.length!==3){clueFb.className='fb bad';clueFb.textContent='Pick exactly 3 clues.';return;}
+    const right=picked.filter(i=>CASE.clues[i][1]).length;
+    if(S.cluesRight===null) S.cluesRight = right===3;
+    if(right===3){clueFb.className='fb good';clueFb.textContent='Strong evidence. The blocked duct explains the symptoms, the fat-only pattern points to bile, and normal liver tests rule out the liver.';S.solved['clues_done']=true;card.querySelectorAll('#clues input').forEach(c=>c.disabled=true);clueChk.remove();}
+    else {clueFb.className='fb bad';clueFb.textContent=`${right} of 3 are strong. Which clues are about bile, fat, or ruling out other organs? Swap out any clue that would be true for a healthy person.`;}
+    check();
+  };
+  rsn.addEventListener('input',check); check();
+  bk.onclick=()=>go(S.screen-1);
+  nx.onclick=()=>go(S.screen+1);
+}
+
+function renderGF(){
+  card.innerHTML=`
+  <span class="stopTag tag-helper">Going further (optional)</span>
+  <h2>Bonus challenge</h2>
+  <p>These are extra. They are scored separately and will not lower your main score.</p>
+  ${GF.map((g,i)=>mcqHTML('gf'+i,g,false)).join('')}
+  <div class="nav"><button class="back" id="bk">Back</button><button class="go" id="nx">See my results</button></div>`;
+  GF.forEach((g,i)=>wireMCQ(card,'gf'+i,g,'gf'));
+  bk.onclick=()=>go(S.screen-1);
+  nx.onclick=()=>go(S.screen+1);
+}
+
+function results(){
+  const keys=Object.keys(S.first);
+  let right=keys.filter(k=>S.first[k]).length, total=keys.length;
+  total+=1; if(S.cluesRight) right+=1;
+  const pct=Math.round(100*right/total);
+  const gfKeys=Object.keys(S.gf).filter(k=>!k.endsWith('_done'));
+  const gfRight=gfKeys.filter(k=>S.gf[k]).length;
+  const letters='ABCDEFGHJKMNPQRSTUVWXYZ';
+  const chk=letters[(right*7+total*3)%letters.length];
+  const code=`BITE-${String(right).padStart(2,'0')}${chk}`;
+  const minutes=Math.max(1,Math.round((Date.now()-S.start)/60000));
+  const p=S.pred||{};
+  const pred=`order ${p.orderOK?'yes':'no'}, route ${p.travelOK?'yes':'no'}`;
+  return {right,total,pct,code,minutes,pred,gf:gfKeys.length?`${gfRight}/${GF.length}`:'skipped'};
+}
+
+function renderDone(){
+  const r=results(), p=S.pred||{};
+  card.innerHTML=`
+  <span class="stopTag tag-main">Trip complete</span>
+  <h2>Nice work!</h2>
+  <p>The bite took about 1 to 3 days to make this trip. You did it in ${r.minutes} minute${r.minutes===1?"":"s"}.</p>
+  <div class="code" aria-label="Your trip code">${r.code}</div>
+  <p class="score">First-try score: <b>${r.right} / ${r.total}</b> (${r.pct}%)</p>
+  <p class="small">Going further: ${r.gf}</p>
+  <div class="save" id="saveMsg">Show your teacher this screen, or write your trip code at the top of your worksheet. Your score is not sent anywhere.</div>
+  <h3>Your predictions vs. what happened</h3>
+  <ul class="compare">
+    <li>Order of the tube: ${p.orderOK?'you had it right':'the real order is mouth, esophagus, stomach, small intestine, large intestine'}.</li>
+    <li>Organs the food travels through: ${p.travelOK?'you had it right':'food never passes through the liver, gallbladder, or pancreas. They only send juices.'}</li>
+  </ul>
+  <p>Write your trip code at the top of your worksheet, and finish your travel log below if you have not already.</p>
+  ${logHTML(STOPS.length-1).replace('<details class="logWrap">','<details class="logWrap" open>')}
+  <div class="nav"><button class="back" id="bk">Back</button><button class="go" id="copyBtn">Copy my results</button></div>`;
+  bk.onclick=()=>go(S.screen-1);
+  copyBtn.onclick=()=>copyResults(r);
+}
+function copyResults(r){
+  const txt=`Trip code: ${r.code}\nFirst-try score: ${r.right}/${r.total} (${r.pct}%)\nGoing further: ${r.gf}\nPredictions: ${r.pred}\nTime: ${r.minutes} min\n\nCase reasoning:\n${S.reasoning}`;
+  const msg=document.getElementById('saveMsg');
+  const ok=()=>{msg.textContent='✓ Copied. Paste it into your assignment or send it to your teacher.';};
+  const fail=()=>{
+    const ta=document.createElement('textarea'); ta.value=txt; ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try{document.execCommand('copy');ok();}catch(e){msg.textContent='Could not copy. Show your teacher this screen instead.';}
+    ta.remove();
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok,fail); else fail();
+}
+
+/* ---------- utils ---------- */
+function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function speak(text,btn){
+  if(!('speechSynthesis' in window)){btn.textContent='Read-aloud is not available';return;}
+  if(speechSynthesis.speaking){stopSpeech();btn.setAttribute('aria-pressed','false');btn.textContent='Read it to me';return;}
+  const u=new SpeechSynthesisUtterance(text); u.rate=0.9;
+  u.onend=()=>{btn.setAttribute('aria-pressed','false');btn.textContent='Read it to me';};
+  btn.setAttribute('aria-pressed','true');btn.textContent='Stop reading';
+  speechSynthesis.speak(u);
+}
+function stopSpeech(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
+render();
+</script>
+</body>
+</html>
