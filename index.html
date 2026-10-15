@@ -166,6 +166,62 @@ table.log th{background:var(--wall)}
 .pill{background:#FFF8E6;border:2px solid var(--bite);border-radius:12px;padding:6px 14px;font-size:.92rem}
 .pill b{font-family:"Bricolage Grotesque",Arial,sans-serif;font-size:1.25rem}
 .badgeline{font-size:.95rem;margin:4px 0 10px}
+/* labeling section */
+.labelGrid{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:22px;align-items:start;margin-top:8px}
+@media(max-width:900px){
+  .labelGrid{grid-template-columns:1fr;gap:10px}
+  .bank{order:-1;position:sticky;top:calc(var(--hudh,48px) + 4px);z-index:15;padding:8px 10px;box-shadow:0 4px 10px rgba(0,0,0,.14)}
+  .bank h3{display:none}
+  .bankChips{gap:6px;margin-bottom:6px}
+  .lchip{padding:5px 11px;font-size:.88rem}
+  .bank .fb{font-size:.85rem;min-height:0;margin-top:6px}
+  .bank .small{margin:4px 0 0}
+}
+.llegend{display:flex;flex-wrap:wrap;gap:6px;padding:8px 4px 2px}
+.lg{background:#E6F4EA;border:1.5px solid var(--good);border-radius:14px;padding:2px 10px;font-size:.85rem}
+.lg b{margin-right:4px}
+.llegend .small{margin:0}
+button,.pin,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+.map summary{font-family:"Bricolage Grotesque",Arial,sans-serif;font-weight:600;font-size:.95rem;color:var(--muted);margin:0 0 6px 8px;list-style:none;cursor:pointer}
+.map summary::-webkit-details-marker{display:none}
+.mapNow{color:var(--gut);font-weight:600;font-size:.85rem;margin-left:6px}
+@media(min-width:821px){.map summary{pointer-events:none}}
+@media(max-width:820px){
+  .map{padding:8px 6px}
+  .map summary{margin-bottom:0;padding:4px 0}
+  .map summary::before{content:"\25B8  "}
+  .map details[open] summary::before{content:"\25BE  "}
+  .map details[open] summary{margin-bottom:6px}
+  h1{font-size:1.8rem} h2{font-size:1.45rem}
+  .hudIn{flex-wrap:nowrap;gap:8px;padding:6px 10px}
+  .hstat{font-size:1rem} .hstat .hl,.hlabel{display:none}
+  .hbar{min-width:50px}
+  #sndBtn .stxt{display:none}
+  .opt{padding:12px 14px}
+  .orderList button{width:44px;height:42px}
+  .go,.back{padding:12px 18px}
+  .nav{gap:8px}
+  .lock{order:3;width:100%}
+}
+.bodyWrap{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px}
+#bodySvg{width:100%;max-width:560px;height:auto;display:block;margin:0 auto}
+.bank{position:sticky;top:70px;background:var(--wall);border-radius:12px;padding:12px 14px}
+.bank h3{font-size:1rem;margin-bottom:8px}
+.bankChips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.lchip{border:2px solid var(--ink);background:#fff;border-radius:22px;padding:6px 14px;font-weight:600;font-size:.92rem;transition:transform .1s}
+.lchip:hover{transform:translateY(-1px)}
+.lchip[aria-pressed="true"]{background:var(--bite)}
+.lchip.used{display:none}
+.lchip.shk{animation:shake .4s ease}
+#bodySvg .pin{cursor:pointer;outline:none}
+#bodySvg .pbox{fill:#fff;stroke:#566273;stroke-width:2;stroke-dasharray:5 4}
+#bodySvg .pin:hover .pbox{stroke:var(--ink);stroke-width:3}
+#bodySvg .pin.sel .pbox{fill:#FFF8E6;stroke:var(--bite);stroke-width:4;stroke-dasharray:none}
+#bodySvg .pin:focus-visible .pbox{stroke:var(--bite);stroke-width:4}
+#bodySvg .pin.done{cursor:default}
+#bodySvg .pin.done .pbox{fill:#E6F4EA;stroke:var(--good);stroke-width:2.5;stroke-dasharray:none}
+#bodySvg .pin.shk{animation:shake .4s ease}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .token{transition:cy .7s ease, cx .7s ease}
 </style>
@@ -177,7 +233,7 @@ table.log th{background:var(--wall)}
     <span class="hstat" title="Right answers in a row"><span aria-hidden="true">&#128293;</span><b id="hStreak">0</b><span class="hl">streak</span></span>
     <div class="hbar" role="progressbar" aria-label="Trip progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="hBar"><div id="hFill"></div></div>
     <span class="hlabel" id="hLabel">Trip progress</span>
-    <button class="chip" id="sndBtn" aria-pressed="false">Sound: off</button>
+    <button class="chip" id="sndBtn" aria-pressed="false" aria-label="Toggle sound"><span class="sicon" aria-hidden="true">&#128263;</span> <span class="stxt">Sound: off</span></button>
   </div>
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
@@ -185,11 +241,12 @@ table.log th{background:var(--wall)}
 
 <div class="app">
   <aside class="map" aria-label="Route map of the digestive system">
-    <h3>Route map</h3>
+    <details id="mapDet" open><summary>Route map <span class="mapNow" id="mapNow"></span></summary>
     <svg id="routeMap" viewBox="0 0 262 470" role="img" aria-labelledby="mapTitle">
       <title id="mapTitle">The main line runs mouth, esophagus, stomach, small intestine, large intestine, exit. Liver, gallbladder, and pancreas are feeder lines that send juices into the small intestine.</title>
     </svg>
     <p class="legend"><span style="background:var(--gut)"></span>Main line: food rides here<br><span style="background:var(--helper)"></span>Feeder line: only juices travel<br>&#9733; = stop cleared</p>
+    </details>
   </aside>
 
   <main class="card" id="card" aria-live="polite"></main>
@@ -443,10 +500,11 @@ const S = {
   solved:{},       // itemKey -> true
   gf:{}, pred:null, predOrder:null, predTravel:null,
   reasoning:'', claimRight:null, cluesRight:null,
-  cleared:{}       // stop id -> true (game: stop cleared)
+  cleared:{},      // stop id -> true (game: stop cleared)
+  labeled:{}, label:{}   // labeling section: placed boxes, first-try results
 };
-const TOTAL_SCREENS = 2 + STOPS.length + 3; // signin, brief, stops, case, GF, done
-function screenIdx(name){return {signin:0,brief:1,case:2+STOPS.length,gf:3+STOPS.length,done:4+STOPS.length}[name];}
+const TOTAL_SCREENS = 2 + STOPS.length + 4; // signin, brief, stops, case, GF, done
+function screenIdx(name){return {signin:0,brief:1,label:2+STOPS.length,case:3+STOPS.length,gf:4+STOPS.length,done:5+STOPS.length}[name];}
 
 /* ============================================================
    GAME LAYER: stars, streaks, sounds, HUD (nothing is saved or sent anywhere)
@@ -569,9 +627,11 @@ const G={
     setTimeout(()=>{ rain(2800); burst(innerWidth/2,innerHeight*.4,70,1.5); SND.fin(); },300);
   }
 };
+function setHudH(){ const h=document.getElementById('hud'); document.documentElement.style.setProperty('--hudh',(h.hidden?0:h.offsetHeight)+'px'); }
 function updateHUD(bump){
   const hud=document.getElementById('hud');
   hud.hidden = (S.screen===0);
+  setHudH();
   const pts=document.getElementById('hPts'), st=document.getElementById('hStreak');
   pts.textContent=G.pts; st.textContent=G.streak;
   if(bump){ pts.classList.remove('bump'); void pts.offsetWidth; pts.classList.add('bump'); }
@@ -579,10 +639,10 @@ function updateHUD(bump){
   document.getElementById('hFill').style.width=pct+'%';
   document.getElementById('hBar').setAttribute('aria-valuenow',pct);
   const i=S.screen-2;
-  document.getElementById('hLabel').textContent = (i>=0&&i<STOPS.length) ? ('Stop '+(i+1)+' of '+STOPS.length) : (S.screen>=screenIdx('case')?'Almost there':'Trip progress');
+  document.getElementById('hLabel').textContent = (i>=0&&i<STOPS.length) ? ('Stop '+(i+1)+' of '+STOPS.length) : (S.screen>=screenIdx('label')?'Almost there':'Trip progress');
 }
 document.getElementById('sndBtn').onclick=function(){
-  G.sound=!G.sound; this.setAttribute('aria-pressed',G.sound); this.textContent='Sound: '+(G.sound?'on':'off');
+  G.sound=!G.sound; this.setAttribute('aria-pressed',G.sound); this.querySelector('.stxt').textContent='Sound: '+(G.sound?'on':'off'); this.querySelector('.sicon').innerHTML=G.sound?'&#128266;':'&#128263;';
   if(G.sound) SND.good();
 };
 function rankFor(pct){
@@ -634,10 +694,11 @@ function drawMap(active){
   if (idx>=0 && idx<STOPS.length){
     const st = STOPS[idx];
     tokenAt = st.line==='helper' ? 'si' : st.map;
-  } else if (S.screen>=screenIdx('case')) tokenAt='exit';
+  } else if (S.screen>=screenIdx('label')) tokenAt='exit';
   const tp = P[tokenAt];
   s += `<circle class="token" cx="${tp.x}" cy="${tp.y}" r="6" fill="#E3A21A" stroke="#1B2330" stroke-width="1.5"><title>The bite is here</title></circle>`;
   m.innerHTML = s;
+  const now=document.getElementById('mapNow'); if(now) now.textContent='\u00B7 bite: '+P[tokenAt].label;
 }
 
 /* ============================================================
@@ -738,6 +799,7 @@ function render(){
   if(n===0) return renderSignin();
   if(n===1) return renderBrief();
   if(n>=2 && n<2+STOPS.length) return renderStop(n-2);
+  if(n===screenIdx('label')) return renderLabel();
   if(n===screenIdx('case')) return renderCase();
   if(n===screenIdx('gf')) return renderGF();
   return renderDone();
@@ -745,7 +807,7 @@ function render(){
 function currentMapKey(){
   const i=S.screen-2;
   if(i>=0 && i<STOPS.length) return STOPS[i].map;
-  if(S.screen>=screenIdx('case')) return 'exit';
+  if(S.screen>=screenIdx('label')) return 'exit';
   return null;
 }
 function go(n){ S.screen=n; stopSpeech(); render(); window.scrollTo({top:0}); card.focus&&card.focus(); }
@@ -820,7 +882,6 @@ function renderStop(i){
   <div class="deep" id="dbox">${st.deep}</div>
   ${tracker(st,prev)}
   ${items.map(([k,it,p])=>mcqHTML(k,it,p)).join('')}
-  ${logHTML(i)}
   <div class="nav"><button class="back" id="bk">Back</button><span class="lock" id="lk">Answer the questions to move on.</span><button class="go" id="nx" disabled>${i===STOPS.length-1?'Head for the exit':'Next stop'}</button></div>`;
   const check=()=>{
     const done=items.every(([k])=>S.solved[k+'_done']);
@@ -835,9 +896,122 @@ function renderStop(i){
   nx.onclick=()=>go(S.screen+1);
 }
 function toggle(btn,box){btn.onclick=()=>{const on=box.classList.toggle('on');btn.setAttribute('aria-pressed',on);};}
-function logHTML(upto){
-  const rows=STOPS.slice(0,upto+1);
-  return `<details class="logWrap"><summary>Travel log (copy this onto your worksheet)</summary><div class="tableScroll"><table class="log"><tr><th>Stop</th><th>Type of digestion / Does food pass through?</th><th>What happens here</th><th>Macromolecules</th></tr>${rows.map(r=>`<tr><td>${r.name}</td><td>${r.line==='helper'?'No. Helper organ':(r.id==='absorb'?'Chemical (then absorption)':r.kind)}</td><td>${r.log}</td><td>${r.macro}</td></tr>`).join('')}</table></div></details>`;
+
+
+/* ============================================================
+   LABELING SECTION
+   ============================================================ */
+const BODY=`<path d="M236 268 C250 296 242 322 216 338 C180 350 160 366 178 378 C208 390 272 376 278 398 C284 416 234 410 188 416 C152 422 154 442 186 448 C214 452 250 446 252 458 C254 466 190 470 150 464 L130 472" fill="none" stroke="#1B2330" stroke-width="16"/><path d="M236 268 C250 296 242 322 216 338 C180 350 160 366 178 378 C208 390 272 376 278 398 C284 416 234 410 188 416 C152 422 154 442 186 448 C214 452 250 446 252 458 C254 466 190 470 150 464 L130 472" fill="none" stroke="#F7E6EE" stroke-width="12"/><path d="M210 58 C210 104 213 138 216 172" fill="none" stroke="#1B2330" stroke-width="18"/><path d="M210 58 C210 104 213 138 216 172" fill="none" stroke="#F3D9E3" stroke-width="14"/><path d="M104 178 C130 160 192 158 238 170 L238 198 C222 232 172 252 132 247 C108 241 98 210 104 178Z" fill="#EBCABD" stroke="#1B2330" stroke-width="2.5"/><path d="M190 162 C186 190 180 214 172 236" fill="none" stroke="#1B2330" stroke-width="1.4"/><path d="M166.0 308.0 Q163.5 303.6 167.1 300.1 Q167.7 294.5 173.2 293.2 Q175.8 288.2 181.1 290.4 Q185.3 286.6 190.3 289.1 Q194.7 286.3 198.4 289.9 Q203.4 287.9 206.6 292.3 Q211.5 289.9 216.0 292.9 Q219.9 289.3 224.5 292.1 Q228.5 288.1 233.5 290.8 Q237.4 286.4 242.5 289.2 Q246.6 285.8 251.8 287.3 Q255.8 283.4 261.2 285.2 Q265.5 281.5 271.0 282.8 Q275.2 277.9 281.2 280.1 Q285.4 275.4 291.3 277.4 Q295.2 273.6 300.5 274.5 Q303.5 269.2 309.2 271.2 Q311.8 266.2 316.9 268.6 Q320.7 265.0 325.0 268.2 Q330.1 268.9 330.0 274.1 Q329.8 279.1 325.2 281.1 Q322.4 285.4 317.4 285.3 Q314.3 290.0 308.8 288.7 Q305.3 292.7 300.0 292.0 Q296.7 296.2 291.5 295.4 Q288.1 299.7 282.7 298.8 Q279.2 302.7 274.0 302.0 Q270.4 306.4 265.0 304.8 Q261.3 309.1 255.9 307.4 Q253.1 312.3 248.0 310.0 Q245.5 314.5 240.5 313.1 Q238.5 318.2 233.2 317.2 Q231.9 322.6 226.3 323.1 Q225.1 328.8 219.4 329.3 Q216.8 333.7 211.9 332.3 Q208.1 335.9 203.3 333.9 Q198.7 337.8 194.3 333.7 Q189.7 337.1 186.4 332.5 Q180.5 334.3 177.4 329.0 Q171.7 328.0 171.2 322.1 Q166.8 319.7 167.7 314.7 Q164.2 312.0 166.0 308.0Z" fill="#FBE3BF" stroke="#1B2330" stroke-width="2"/><path d="M216 170 C242 166 292 176 310 214 C326 250 298 288 262 284 C236 280 222 264 226 248 C228 238 240 232 244 226 C230 214 218 196 216 170Z" fill="#F3D9E3" stroke="#1B2330" stroke-width="2.5"/><path d="M262 196 q8 8 2 16 q-6 8 0 16 M280 204 q8 8 2 16 q-6 8 0 16" fill="none" stroke="#7A2E5A" stroke-width="1.5"/><path d="M158 238 C148 250 154 268 168 268 C182 268 186 252 178 238Z" fill="#CFE6C4" stroke="#1B2330" stroke-width="2"/><path d="M172 238 C174 226 178 216 182 208" fill="none" stroke="#2C7A80" stroke-width="2.5"/><path d="M126 492 L126 352 C126 338 138 334 154 334 L272 334 C290 334 301 342 301 358 L301 440 C301 466 278 476 256 480 C236 484 218 486 214 502 L214 546" fill="none" stroke="#1B2330" stroke-width="24"/><path d="M126 492 L126 352 C126 338 138 334 154 334 L272 334 C290 334 301 342 301 358 L301 440 C301 466 278 476 256 480 C236 484 218 486 214 502 L214 546" fill="none" stroke="#F3D9E3" stroke-width="20"/><path d="M126 492 L126 352 C126 338 138 334 154 334 L272 334 C290 334 301 342 301 358 L301 440 C301 466 278 476 256 480 C236 484 218 486 214 502 L214 546" fill="none" stroke="#E6AFC4" stroke-width="20" stroke-dasharray="1.6 11"/><path d="M168 42 Q210 12 252 42 Q210 72 168 42Z" fill="#E6AFC4" stroke="#1B2330" stroke-width="2.5"/><path d="M180 42 Q210 28 240 42 Q210 58 180 42Z" fill="#6B2447" stroke="#1B2330" stroke-width="1.5"/><path d="M188 40 Q210 32 232 40" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray="4 2"/><path d="M198 50 Q210 44 222 50 Q210 56 198 50Z" fill="#E48DAE"/>`;
+const LABELS=[
+ {id:'mouth',name:'Mouth',side:'L',by:42,tx:226,ty:42,clue:'Teeth chew here and saliva is added.'},
+ {id:'esophagus',name:'Esophagus',side:'R',by:112,tx:263,ty:112,clue:'A muscular tube that squeezes food down to the stomach.'},
+ {id:'liver',name:'Liver',side:'L',by:196,tx:180,ty:205,clue:'The largest internal organ. It makes bile.'},
+ {id:'stomach',name:'Stomach',side:'R',by:200,tx:342,ty:236,clue:'A stretchy bag that churns food and adds acid and pepsin.'},
+ {id:'gallbladder',name:'Gallbladder',side:'L',by:262,tx:213,ty:255,clue:'A small green sac that stores bile.'},
+ {id:'pancreas',name:'Pancreas',side:'R',by:314,tx:366,ty:277,clue:'It sits behind the stomach and sends enzyme juice into the small intestine.'},
+ {id:'si',name:'Small intestine',side:'R',by:410,tx:326,ty:399,clue:'The long coiled tube where most digestion and absorption happen.'},
+ {id:'li',name:'Large intestine',side:'L',by:420,tx:176,ty:420,clue:'The wide tube that frames the coil. It absorbs water.'}
+];
+const isMob=()=>window.matchMedia('(max-width:900px)').matches;
+function renderLabel(){
+  const mob=isMob();
+  const W=mob?360:520, DX=mob?-64:50, BW=146, BH=30, PR=18;
+  [...LABELS].sort((a,b)=>a.by-b.by).forEach((l,i)=>l.n=i+1);
+  const bxOf=l=>l.side==='L'?2:W-2-BW;
+  const pcx=l=>l.side==='L'?19:W-19;
+  let svg=`<svg id="bodySvg" viewBox="0 0 ${W} 570" role="group" aria-label="Digestive system diagram with ${LABELS.length} numbered label spots" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(${DX},0)">${BODY}</g>`;
+  LABELS.forEach(l=>{
+    const ex=mob?(l.side==='L'?pcx(l)+PR:pcx(l)-PR):(l.side==='L'?bxOf(l)+BW:bxOf(l));
+    const tx=l.tx-50+DX;
+    svg+=`<line x1="${ex}" y1="${l.by}" x2="${tx}" y2="${l.ty}" stroke="#566273" stroke-width="1.6"/><circle cx="${tx}" cy="${l.ty}" r="3.5" fill="#566273"/>`;
+  });
+  [...LABELS].sort((a,b)=>a.n-b.n).forEach(l=>{
+    if(mob){
+      svg+=`<g class="pin" data-id="${l.id}" role="button" tabindex="0" aria-label="Spot ${l.n}, empty"><circle class="pbox" cx="${pcx(l)}" cy="${l.by}" r="${PR}"/><text x="${pcx(l)}" y="${l.by+6.5}" font-size="18" font-weight="600" fill="#1B2330" text-anchor="middle" font-family="Lexend,Arial,sans-serif">${l.n}</text></g>`;
+    } else {
+      const bx=bxOf(l);
+      svg+=`<g class="pin" data-id="${l.id}" role="button" tabindex="0" aria-label="Box ${l.n}, empty"><rect class="pbox" x="${bx}" y="${l.by-BH/2}" width="${BW}" height="${BH}" rx="8"/><circle cx="${bx+16}" cy="${l.by}" r="11" fill="#1B2330"/><text x="${bx+16}" y="${l.by+4.5}" font-size="13" font-weight="600" fill="#fff" text-anchor="middle" font-family="Lexend,Arial,sans-serif">${l.n}</text><text class="plab" x="${bx+33}" y="${l.by+4.5}" font-size="12" font-weight="600" fill="#1B2330" font-family="Lexend,Arial,sans-serif"></text></g>`;
+    }
+  });
+  svg+='</svg>';
+  const bank=shuffle(LABELS.map(l=>l.id),'bank');
+  const byId=Object.fromEntries(LABELS.map(l=>[l.id,l]));
+  const what=mob?'numbered circle':'numbered box';
+  card.innerHTML=`
+  <span class="stopTag tag-main">Checkpoint</span>
+  <h2>Label the digestive system</h2>
+  <p>Tap a word, then tap the ${what} where it belongs. You can also tap a ${mob?'circle':'box'} first. Need help? Tap a ${mob?'circle':'box'} and ask for a clue.</p>
+  <div class="labelGrid">
+    <div class="bodyWrap">${svg}${mob?'<div class="llegend" id="legend"></div>':''}</div>
+    <div class="bank">
+      <h3>Word bank</h3>
+      <div class="bankChips" id="bank">${bank.map(id=>`<button class="lchip" data-id="${id}" aria-pressed="false">${byId[id].name}</button>`).join('')}</div>
+      <button class="chip" id="clueBtn" disabled>Need a clue?</button>
+      <div class="fb" id="lfb" role="status"></div>
+      <p class="small" id="lcount"></p>
+    </div>
+  </div>
+  <div class="nav"><button class="back" id="bk">Back</button><span class="lock" id="lk"></span><button class="go" id="nx" disabled>Next: the case</button></div>`;
+  let selChip=null, selPin=null;
+  const pins=[...card.querySelectorAll('.pin')], chips=[...card.querySelectorAll('.lchip')];
+  const paint=()=>{
+    pins.forEach(p=>p.classList.toggle('sel',p.dataset.id===selPin));
+    chips.forEach(c=>c.setAttribute('aria-pressed',c.dataset.id===selChip));
+    clueBtn.disabled=!selPin||!!S.labeled[selPin];
+  };
+  const legend=()=>{
+    const el=document.getElementById('legend'); if(!el) return;
+    const done=LABELS.filter(l=>S.labeled[l.id]).sort((a,b)=>a.n-b.n);
+    el.innerHTML=done.length?done.map(l=>`<span class="lg"><b>${l.n}</b>${l.name}</span>`).join(''):'<span class="small">Labels you place will show up here.</span>';
+  };
+  const fillPin=p=>{
+    const l=byId[p.dataset.id];
+    p.classList.add('done'); p.classList.remove('sel');
+    const pl=p.querySelector('.plab'); if(pl) pl.textContent=l.name;
+    p.setAttribute('aria-label',`${mob?'Spot':'Box'} ${l.n}, labeled ${l.name}`);
+    const c=card.querySelector(`.lchip[data-id="${l.id}"]`); c.classList.add('used'); c.disabled=true;
+    legend();
+  };
+  const finish=()=>{
+    const n=Object.keys(S.labeled).length, all=n===LABELS.length;
+    lcount.textContent=`${n} of ${LABELS.length} labeled`;
+    nx.disabled=!all; lk.textContent=all?'':'Label every spot to move on.';
+    if(all){
+      nx.classList.add('ready');
+      const r=Object.values(S.label).filter(Boolean).length;
+      lfb.className='fb good'; lfb.textContent=`All labeled! ${r} of ${LABELS.length} on the first try.`;
+      G.clear('label',nx,100,'System labeled!');
+    }
+  };
+  const shake=el=>{el.classList.remove('shk'); void el.getBoundingClientRect(); el.classList.add('shk');};
+  const attempt=()=>{
+    if(!selChip||!selPin) return;
+    const l=byId[selPin], pin=card.querySelector(`.pin[data-id="${selPin}"]`);
+    const first=!(selPin in S.label), ok=selChip===selPin;
+    if(first) S.label[selPin]=ok;
+    if(ok){
+      S.labeled[selPin]=true; fillPin(pin);
+      lfb.className='fb good'; lfb.textContent=`Yes! ${l.clue}`;
+      G.right(pin,first,false);
+      selChip=null; selPin=null; paint(); finish();
+    } else {
+      lfb.className='fb bad'; lfb.textContent=`Not quite. Clue for ${mob?'spot':'box'} ${l.n}: ${l.clue}`;
+      shake(pin); G.wrong(pin); selChip=null; paint();
+    }
+  };
+  pins.forEach(p=>{
+    const act=()=>{ if(S.labeled[p.dataset.id]) return; selPin=(selPin===p.dataset.id&&!selChip)?null:p.dataset.id; paint(); attempt(); };
+    p.onclick=act;
+    p.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();act();} };
+    if(S.labeled[p.dataset.id]) fillPin(p);
+  });
+  chips.forEach(c=>c.onclick=()=>{ selChip=(selChip===c.dataset.id)?null:c.dataset.id; paint(); attempt(); });
+  clueBtn.onclick=()=>{ if(!selPin) return; const l=byId[selPin]; lfb.className='fb'; lfb.textContent=`Clue for ${mob?'spot':'box'} ${l.n}: ${l.clue}`; };
+  bk.onclick=()=>go(S.screen-1);
+  nx.onclick=()=>go(S.screen+1);
+  legend();
+  finish();
+  if(Object.keys(S.labeled).length<LABELS.length){ lfb.className='fb'; lfb.textContent=''; }
 }
 
 function renderCase(){
@@ -923,14 +1097,15 @@ function results(){
   const minutes=Math.max(1,Math.round((Date.now()-S.start)/60000));
   const p=S.pred||{};
   const pred=`order ${p.orderOK?'yes':'no'}, route ${p.travelOK?'yes':'no'}`;
-  return {right,total,pct,code,minutes,pred,gf:gfKeys.length?`${gfRight}/${GF.length}`:'skipped'};
+  const labTotal=LABELS.length, labRight=Object.values(S.label).filter(Boolean).length;
+  return {right,total,pct,code,minutes,pred,labRight,labTotal,gf:gfKeys.length?`${gfRight}/${GF.length}`:'skipped'};
 }
 
 function renderDone(){
   const r=results(), p=S.pred||{};
   const ns=starsFor(r.pct);
   const starHTML=[1,2,3].map(i=>`<span class="${i<=ns?'on':'off'}" ${i<=ns?`style="animation-delay:${i*.25}s"`:''}>\u2605</span>`).join('');
-  const cleared=Object.keys(S.cleared).length;
+  const cleared=STOPS.filter(x=>S.cleared[x.id]).length;
   card.innerHTML=`
   <span class="stopTag tag-main">Trip complete</span>
   <h2>Nice work!</h2>
@@ -939,27 +1114,26 @@ function renderDone(){
   <div class="pillrow">
     <div class="pill">Stars earned: <b>${G.pts}</b></div>
     <div class="pill">Best streak: <b>${G.best}</b></div>
-    <div class="pill">Stops cleared: <b>${cleared}</b></div>
+    <div class="pill">Stops cleared: <b>${cleared} / ${STOPS.length}</b></div>
+    <div class="pill">Labeling (first try): <b>${r.labRight} / ${r.labTotal}</b></div>
   </div>
   <p>The bite took about 1 to 3 days to make this trip. You did it in ${r.minutes} minute${r.minutes===1?"":"s"}.</p>
   <div class="code" aria-label="Your trip code">${r.code}</div>
   <p class="score">First-try score: <b>${r.right} / ${r.total}</b> (${r.pct}%)</p>
   <p class="small">Going further: ${r.gf}</p>
-  <div class="save" id="saveMsg">Show your teacher this screen, or write your trip code at the top of your worksheet. Your score is not sent anywhere.</div>
+  <div class="save" id="saveMsg">Show your teacher this screen. Your score is not sent anywhere.</div>
   <h3>Your predictions vs. what happened</h3>
   <ul class="compare">
     <li>Order of the tube: ${p.orderOK?'you had it right':'the real order is mouth, esophagus, stomach, small intestine, large intestine'}.</li>
     <li>Organs the food travels through: ${p.travelOK?'you had it right':'food never passes through the liver, gallbladder, or pancreas. They only send juices.'}</li>
   </ul>
-  <p>Write your trip code at the top of your worksheet, and finish your travel log below if you have not already.</p>
-  ${logHTML(STOPS.length-1).replace('<details class="logWrap">','<details class="logWrap" open>')}
   <div class="nav"><button class="back" id="bk">Back</button><button class="go" id="copyBtn">Copy my results</button></div>`;
   bk.onclick=()=>go(S.screen-1);
   copyBtn.onclick=()=>copyResults(r);
   G.finale();
 }
 function copyResults(r){
-  const txt=`Trip code: ${r.code}\nFirst-try score: ${r.right}/${r.total} (${r.pct}%)\nRank: ${rankFor(r.pct)}\nStars: ${G.pts} (best streak ${G.best})\nGoing further: ${r.gf}\nPredictions: ${r.pred}\nTime: ${r.minutes} min\n\nCase reasoning:\n${S.reasoning}`;
+  const txt=`Trip code: ${r.code}\nFirst-try score: ${r.right}/${r.total} (${r.pct}%)\nRank: ${rankFor(r.pct)}\nStars: ${G.pts} (best streak ${G.best})\nLabeling: ${r.labRight}/${r.labTotal}\nGoing further: ${r.gf}\nPredictions: ${r.pred}\nTime: ${r.minutes} min\n\nCase reasoning:\n${S.reasoning}`;
   const msg=document.getElementById('saveMsg');
   const ok=()=>{msg.textContent='✓ Copied. Paste it into your assignment or send it to your teacher.';};
   const fail=()=>{
@@ -982,6 +1156,13 @@ function speak(text,btn){
   speechSynthesis.speak(u);
 }
 function stopSpeech(){ if('speechSynthesis' in window) speechSynthesis.cancel(); }
+if(window.matchMedia('(max-width:820px)').matches) document.getElementById('mapDet').open=false;
+let _lastMob=isMob();
+window.addEventListener('resize',()=>{
+  setHudH();
+  const m=isMob();
+  if(m!==_lastMob){ _lastMob=m; if(S.screen===screenIdx('label')) renderLabel(); }
+});
 render();
 </script>
 </body>
